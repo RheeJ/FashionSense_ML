@@ -63,8 +63,8 @@ def test(sess, test_x, test_y):
 def train(learn_rate):
 	train_x, train_y, test_x, test_y = loaddata()
 	train_x = train_x.reshape(-1, 128, 128, 1)
-	X = tf.placeholder(tf.float32, [None, 128, 64, 1])
-	Y = tf.placeholder(tf.float32, [None, 20])
+	X = tf.placeholder(tf.float32, [None, 128, 128, 1])
+	Y = tf.placeholder(tf.float32, [None, 10])
 	logits = model(train_x)
 	cost = tf.nn.softmax_cross_entropy_with_logits(logits, Y)
 	train_step = tf.train.AdamOptimizer(learn_rate).minimize(cost)
@@ -74,5 +74,5 @@ def train(learn_rate):
 		for i in range(100):
 			#determining batch size
 			for start, end in zip(range(0, len(train_x), 128), range(128, len(train_x)+1, 128)):
-				sess.run(train_step, feed_dict={X: train_x[start:end], Y: train_y[stard:end]})
+				sess.run(train_step, feed_dict={X: train_x[start:end], Y: train_y[start:end]})
 			print test(sess,test_x, test_y)
