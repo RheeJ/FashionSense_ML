@@ -6,6 +6,7 @@ import pickle
 import sklearn
 import numpy as np
 import scipy
+from logger_config import log
 from sklearn import tree
 
 InputFileName = str(sys.argv[1])
@@ -29,6 +30,8 @@ def save_classifier(classifier, training_set, training_labels):
     pickle.dump(training_labels, open('training_labels.p', 'w'))
 
 def main(filename, query):
+
+    log('d_tree')
     training_set, training_labels, testing_set, testing_labels = preprocess(filename)
 
     classifier = tree.DecisionTreeClassifier()

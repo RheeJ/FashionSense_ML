@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 from tensorflow.contrib.layers import flatten
+from logger_config import log
 
 np.set_printoptions(threshold='nan')
 
@@ -85,4 +86,5 @@ def train(learn_rate):
 				sess.run(train_step, feed_dict={X: train_x[start:end], Y: train_y[start:end]})
 			print sess.run([tf.argmax(test_y, 1), tf.argmax(logits,1)], feed_dict={X: test_x, Y: test_y})
 
+log('c_nn')
 print train(.001)
