@@ -20,7 +20,8 @@ for i in range(0, 26):
     featureDict[i] = temp
     csvArray.append(temp)
 
-
 a = np.asarray(csvArray)
+a = np.swapaxes(a, 0, 1)
+
 np.savetxt("data.csv", a, delimiter=",")
 
