@@ -1,8 +1,8 @@
 import tensorflow as tf
 import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
-from tensorflow.contrib.layers import flatten
 import sys
+from logger_config import log
 
 np.set_printoptions(threshold='nan')
 
@@ -116,3 +116,4 @@ elif sys.argv[1] == 'test':
 	test()
 else:
 	print "You can either train or test. Usage: python c_nn.py train or python c_nn.py test. Validation coming soon."
+log('c_nn')
