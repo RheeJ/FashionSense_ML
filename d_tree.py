@@ -20,6 +20,22 @@ def preprocess(filename):
     testing_set = np.zeros()
     testing_labels = np.zeros()
 
+    #Input File = tab delineated for features, line delineated for each piece of data.
+    #Feature Vector = [Primary Color, Secondary Color, Shape, Structure, Buttons,
+    #Pattern, Collar, Materials, Logo/Text, Neck-Style, Sleeve-Length']
+
+    #Primary Color = Majority color in image
+    #Secondary Color = Second majority color in image
+    #Shape = TODO: Figure out shape vector
+    #Structure = Frilled, Wrinkled, Knitted, Ruffled
+    #Materials = cotton, denim, fur, lace, leather, silk, tweed, wool.
+    #Patterns = Stripes, animal print, plaid, print.
+    #Collar = True/False
+    #Logo = True/False
+    #Text = True/False
+    #Neck-Style = V-Neck/Crew-Neck
+    #Sleeve-Length = Long/short
+
 
     return training_set, training_labels, testing_set, testing_labels
 
@@ -30,7 +46,6 @@ def save_classifier(classifier, training_set, training_labels):
     pickle.dump(training_labels, open('training_labels.p', 'w'))
 
 def main(filename, query):
-
     log('d_tree')
     training_set, training_labels, testing_set, testing_labels = preprocess(filename)
 
