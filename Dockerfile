@@ -5,7 +5,10 @@ WORKDIR /app
 RUN apt-get upgrade
 RUN apt-get update
 
-RUN pip install flask
+RUN pip install flask \
+	numpy \
+	scipy \
+	sklearn
 
 ADD . /app/
 EXPOSE 5000

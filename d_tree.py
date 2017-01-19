@@ -11,7 +11,7 @@ from logger_config import log
 from sklearn import tree
 
 InputFileName = str(sys.argv[1])
-#Query = str(sys.argv[2])
+Query = str(sys.argv[2])
 
 def preprocess(filename):
     #TODO: Preprocess input file once images have been scraped.
@@ -95,9 +95,9 @@ def main(filename, query):
 
 
     # #Given new Query, Return classification of Query
-    # result = classifier.predict(query)
-    # print "Query Classified as: " + str(result)
-    # return result
+    result = classifier.predict(query)
+    #print "Query Classified as: " + str(result)
+    return result
 
 main(InputFileName, "Test")
 
