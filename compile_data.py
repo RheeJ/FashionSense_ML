@@ -1,84 +1,77 @@
 import numpy as np
 import PIL
 from PIL import Image
+from mat_to_npy import deserialize
 
 def compile_data():
 	images = []
 	labels = []
 	test_images = []
 	test_labels = []
-
-	for i in range(1,1701):
-#		try:
-#			tmp_label = np.load('shirts_dataset/labels/out'+str(i)+'.npy')
-#		except:
-#			continue
-#		try:
-		tmp_pic = Image.open('clothing-data/images/{:06d}.jpg'.format(i))
-		tmp_pic = tmp_pic.resize((128,128), PIL.Image.ANTIALIAS)
-#		except:
-#			continue
-#		tmp_label = tmp_label.reshape(5)
-		pic_array = np.array(tmp_pic)
-#		if pic_array.shape != (128, 128, 3):
-#			continue
-		if i == 1:
-#			first_label = tmp_label.tolist()
+	first = True
+	second = False
+	for i in range(1,500):
+		try:
+			tmp_pic = Image.open('training_pictures/train'+str(i)+'.jpg')
+			tmp_pic = tmp_pic.resize((128,128), PIL.Image.ANTIALIAS)
+			tmp_pic.save('visualize/train/out'+str(i)+'.jpg')
+			pic_array = np.array(tmp_pic)
+		except:
+			print "exception"
+			continue
+		if first == True:
 			first_pic = np.asfarray(pic_array, dtype='float32')/255
 			first_pic = np.asarray(first_pic).reshape(-1)
+			labels = deserialize('clothing-data/labels/black_GT.mat', i, labels)
+			first = False
+			second = True
 		else:
-#			labels.append(tmp_label.tolist())
 			next_pic = np.asfarray(pic_array, dtype='float32')/255
 			next_pic = np.asarray(next_pic).reshape(-1)
-			if i == 2:
+			labels = deserialize('clothing-data/labels/black_GT.mat', i, labels)
+			if second == True:
 				images = np.concatenate(([first_pic],[next_pic]),axis=0)
+				second = False
 			else:
 				images = np.concatenate((images,[next_pic]), axis=0)
 	try:
-#		labels = np.append([first_label],labels, axis=0)
-#		labels = np.asfarray(labels, dtype='float32')
-
-#		print labels.shape
-#		print images.shape
-#		np.save('train_labels.npy', labels)
-		np.save('train_images.npy', images)
+		a = np.array(labels)
+		print a
+		#np.save('train_labels.npy', a)
+		#np.save('train_images.npy', images)
 	except:
 		print "something went wrong"
-
-	for i in range(1701, 1801):
-#		try:
-#			tmp_label = np.load('shirts_test/labels/out'+str(i)+'.npy')
-#		except:
-#			continue
+	first = True
+	second = False
+	for i in range(501,550):
 		try:
-			tmp_pic = Image.open('clothing-data/images/{:06d}.jpg'.format(i))
+			tmp_pic = Image.open('training_pictures/train'+str(i)+'.jpg')
 			tmp_pic = tmp_pic.resize((128,128), PIL.Image.ANTIALIAS)
+			tmp_pic.save('visualize/test/out'+str(i)+'.jpg')
+			pic_array = np.array(tmp_pic)
 		except:
+			print "exception"
 			continue
-#		tmp_label = tmp_label.reshape(5)
-		pic_array = np.array(tmp_pic)
-#		if pic_array.shape != (128, 128, 3):
-#			continue
-		if i == 1701:
-#			first_label = tmp_label.tolist()
+		if first == True:
 			first_pic = np.asfarray(pic_array, dtype='float32')/255
 			first_pic = np.asarray(first_pic).reshape(-1)
+			test_labels = deserialize('clothing-data/labels/black_GT.mat', i, test_labels)
+			first = False
+			second = True
 		else:
-#			test_labels.append(tmp_label.tolist())
 			next_pic = np.asfarray(pic_array, dtype='float32')/255
 			next_pic = np.asarray(next_pic).reshape(-1)
-			if i == 1702:
+			test_labels = deserialize('clothing-data/labels/black_GT.mat', i, test_labels)
+			if second == True:
 				test_images = np.concatenate(([first_pic],[next_pic]),axis=0)
+				second = False
 			else:
 				test_images = np.concatenate((test_images,[next_pic]), axis=0)
 	try:
-#		test_labels = np.append([first_label],test_labels, axis=0)
-		test_labels = np.asfarray(test_labels, dtype='float32')
-
-#		print test_labels.shape
-#		print test_images.shape
-#		np.save('test_labels.npy', test_labels)
-		np.save('test_images.npy', test_images)
+		a = np.array(test_labels)
+		print a
+		#np.save('test_labels.npy', a)
+		#np.save('test_images.npy', test_images)
 	except:
 		print "something went wrong"
 	return "done"

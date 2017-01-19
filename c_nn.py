@@ -64,17 +64,17 @@ c3_w = tf.Variable(tf.truncated_normal([5,5,64,128], stddev=.01))
 #So the size of this weights matrix will depend on the image size.
 #For example, we will use 128x128 grayscale image with 10 possible outputs. 3 pooling layers and padding="SAME" so 128/2/2/2 = 16
 fc4_w = tf.Variable(tf.truncated_normal([128 * 16 * 16, 2048], stddev=.01))
-fc5_w = tf.Variable(tf.truncated_normal([2048, 8], stddev=.01))
+fc5_w = tf.Variable(tf.truncated_normal([2048, 3], stddev=.01))
 
 #Biases must match shape of weights
 c1_b = tf.Variable(tf.constant(.1, shape=[32]))
 c2_b = tf.Variable(tf.constant(.1, shape=[64]))
 c3_b = tf.Variable(tf.constant(.1, shape=[128]))
 fc4_b = tf.Variable(tf.constant(.1, shape=[2048]))
-fc5_b = tf.Variable(tf.constant(.1, shape=[8]))
+fc5_b = tf.Variable(tf.constant(.1, shape=[3]))
 
 X = tf.placeholder(tf.float32, [None, 128,128, 3])
-Y = tf.placeholder(tf.float32, [None, 8])
+Y = tf.placeholder(tf.float32, [None, 3])
 logits = model(X)
 cost = tf.nn.softmax_cross_entropy_with_logits(logits, Y)
 train_step = tf.train.AdamOptimizer(.0001).minimize(cost)
@@ -93,10 +93,16 @@ def train():
 	#determining iterations
 	print "Start Training"
 	for i in range(100):
-		#determining batch size
-		for start, end in zip(range(0, len(train_x), 128), range(128, len(train_x)+1, 128)):
-			sess.run(train_step, feed_dict={X: train_x[start:end], Y: train_y[start:end]})
-		print (i, np.mean(np.argmax(test_y, axis=1) == sess.run(predict_step, feed_dict={X: test_x})))
+		try:
+			#determining batch size
+			for start, end in zip(range(0, len(train_x), 128), range(128, len(train_x)+1, 128)):
+				sess.run(train_step, feed_dict={X: train_x[start:end], Y: train_y[start:end]})
+			print (i, np.mean(np.argmax(test_y, axis=1) == sess.run(predict_step, feed_dict={X: test_x})))
+		except KeyboardInterrupt:
+			print "Saving The Model. Please wait:"
+			saver.save(sess, 'trained_model.ckpt')
+			print "Done Saving Model"
+			exit()
 	print "Saving The Model. Please wait:"
 	saver.save(sess, 'trained_model.ckpt')
 	print "Done Saving Model"
