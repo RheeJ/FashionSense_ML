@@ -10,9 +10,6 @@ import csv
 from logger_config import log
 from sklearn import tree
 
-InputFileName = str(sys.argv[1])
-Query = str(sys.argv[2])
-
 def preprocess(filename):
     #TODO: Preprocess input file once images have been scraped.
     #Return training set, training labels, testing set, and testing labels as numpy array.
@@ -97,7 +94,9 @@ def main(filename, query):
     # #Given new Query, Return classification of Query
     result = classifier.predict(query)
     #print "Query Classified as: " + str(result)
-    return result
+    return result[0]
 
-main(InputFileName, "Test")
-
+if __name__ == "__main__":
+    InputFileName = str(sys.argv[1])
+    Query = str(sys.argv[2])
+    main(InputFileName, "Test")
