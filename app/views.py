@@ -6,6 +6,7 @@ from flask import request
 @app.route('/', methods=['POST'])
 def index():
     data = request.get_json()
+    print data
     f_vector = data['features']
     classified = d_tree.main('int_data.csv', f_vector)
     if classified == 1:
