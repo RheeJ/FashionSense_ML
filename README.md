@@ -10,9 +10,9 @@ Docker container hosting our machine learning stuff.
 * to run with Docker
     * first build everything with Docker
     ```
-    $ docker build -t ml
+    $ docker build -t ml .
     ```
     * to run with Docker
     ```
-    $ docker run -p 5000:5000 ml .
+    $ docker run -p 5000:5000 ml
     ```
