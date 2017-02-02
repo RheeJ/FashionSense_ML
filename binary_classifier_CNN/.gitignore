@@ -1,0 +1,8 @@
+checkpoint
+*.ckpt*
+*.pyc
+*.jpg
+*.gif
+*.jpeg
+*.png
+*.zip*
