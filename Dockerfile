@@ -5,12 +5,11 @@ WORKDIR /app
 RUN apt-get upgrade
 RUN apt-get update
 
-RUN pip install flask \
-	numpy \
-	scipy \
-	sklearn
+RUN pip install flask
+
+RUN pip install -r binary_classifier_CNN/requirements.txt
 
 ADD . /app/
 EXPOSE 5000
 
-CMD python run.py
+CMD ./start.sh
