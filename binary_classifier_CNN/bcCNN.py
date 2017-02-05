@@ -95,7 +95,7 @@ class Net(object):
 
         return model
 
-    def __init__(self):
+    def __init__(self, model_path):
 
         self.sess = tf.Session()
         self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
@@ -103,10 +103,13 @@ class Net(object):
         self.logits = self.model(self.X)
         self.saver = tf.train.Saver()
 
+        self.model_location = model_path + '/' + 'model.ckpt'
+        model_meta_path = self.model_location + '.meta'
+
         self.saved_model = False
-        if os.path.isfile('model.ckpt.meta'):
-            self.saver = tf.train.import_meta_graph('model.ckpt.meta')
-            self.saver.restore(self.sess, tf.train.latest_checkpoint('./'))
+        if os.path.isfile(model_meta_path):
+            self.saver = tf.train.import_meta_graph(model_meta_path)
+            self.saver.restore(self.sess, tf.train.latest_checkpoint(model_path))
             self.saved_model = True
 
     def train(self, data, labels, validation_data, validation_labels):
@@ -139,12 +142,12 @@ class Net(object):
 
         except KeyboardInterrupt:
             print "Saving model before exiting"
-            self.saver.save(self.sess, "model.ckpt")
+            self.saver.save(self.sess, self.model_location)
             self.saved_model = True
             exit()
 
         print "Saving model"
-        self.saver.save(self.sess, "model.ckpt")
+        self.saver.save(self.sess, self.model_location)
 
     def test(self, data, labels):
         """
