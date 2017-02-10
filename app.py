@@ -12,17 +12,22 @@ app = Flask(__name__)
 
 def index():
 
+    # write binary data to temp file
     data = request.get_data()
-    temp = tempfile.TemporaryFile()
-    temp.write(data)
-    temp.seek(0)
-    classifications_dict = get_classifications(temp)
-    result = json.dumps(classifications_dict)
-    temp.close()
-
     if data == None:
         abort(400)
 
+    temp = tempfile.TemporaryFile()
+    temp.write(data)
+    temp.seek(0)
+
+    # get the classifications from net
+    classifications_dict = get_classifications(temp)
+
+    # close temp file
+    temp.close()
+
+    result = json.dumps(classifications_dict)
     return result
 
 if __name__ == "__main__":
