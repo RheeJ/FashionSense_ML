@@ -1,28 +1,31 @@
 import json
 from flask import request
 from flask import Flask
-import os
+import sys, os
 from binary_classifier_CNN import bcCNN
+from app_utils import do_everything
+def usage_message():
+    print "This script connects bCNNs to the endpoint host (i think)"
+    print "Usage: python app.py [-m=<module names>]"
+    exit()
+
+log('running')
+
+args = sys.argv[1:]
+
+if len(args) < 1:
+    usage_message()
+
+trained_models = args[0]
 
 app = Flask(__name__)
 
 @app.route('/', methods=['POST'])
+
 def index():
-
     filepath = request.get_json()["file_path"]
-
-    model_path = "./classifiers/formal/"
-    formal_net = bcCNN.Net(model_path)
-    classification = formal_net.classify(filepath)
-
-    if classification == 0:
-        classification = "formal"
-    else:
-        classification = "not formal"
-
-    dictionary = { "classification" : classification }
-    result = json.dumps(dictionary)
-
+    classifications_dict = do_everything(image)
+    result = json.dumps(classifications_dict)
     return result
 
 if __name__ == "__main__":
