@@ -192,7 +192,7 @@ if __name__ == "__main__":
         exit()
 
     # instantiate the net
-    net = Net()
+    net = Net('.')
 
     if len(args) == 2:
         if args[0] == "-classify":

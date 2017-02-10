@@ -1,31 +1,28 @@
 import json
+import tempfile
 from flask import request
 from flask import Flask
+from flask import abort
 import sys, os
 from binary_classifier_CNN import bcCNN
-from app_utils import do_everything
-def usage_message():
-    print "This script connects bCNNs to the endpoint host (i think)"
-    print "Usage: python app.py [-m=<module names>]"
-    exit()
-
-log('running')
-
-args = sys.argv[1:]
-
-if len(args) < 1:
-    usage_message()
-
-trained_models = args[0]
+from app_utils import get_classifications
 
 app = Flask(__name__)
-
 @app.route('/', methods=['POST'])
 
 def index():
-    filepath = request.get_json()["file_path"]
-    classifications_dict = do_everything(image)
+
+    data = request.get_data()
+    temp = tempfile.TemporaryFile()
+    temp.write(data)
+    temp.seek(0)
+    classifications_dict = get_classifications(temp)
     result = json.dumps(classifications_dict)
+    temp.close()
+
+    if data == None:
+        abort(400)
+
     return result
 
 if __name__ == "__main__":
