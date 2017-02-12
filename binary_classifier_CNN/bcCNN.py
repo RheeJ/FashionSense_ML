@@ -72,13 +72,13 @@ class Net(object):
         return (float(correct) / float(length_data)) * 100
 
     @staticmethod
-    def model(X):
+    def model(X, p_hidden):
         """
         output: return the model
         """
 
         conv1 = conv_layer(X, [5, 5, 3, 64], [1, 1, 1, 1], 1)
-        pool1 = pool_layer(dropout, [1, 2, 2, 1], [1, 2, 2, 1], 1)
+        pool1 = pool_layer(conv1, [1, 2, 2, 1], [1, 2, 2, 1], 1)
 
         conv2 = conv_layer(pool1, [5, 5, 64, 128], [1, 1, 1, 1], 2)
         pool2 = pool_layer(conv2, [1, 2, 2, 1], [1, 2, 2, 1], 2)
@@ -89,8 +89,8 @@ class Net(object):
         reshape_pool3 = tf.reshape(pool3, [-1,  8*8*256])
 
         full1 = full_layer(reshape_pool3, 8*8*256, 4096, 1)
-        dropout = tf.nn.dropout(p_hidden)
-        
+        full1 = tf.nn.dropout(full1, p_hidden)
+
         model = full_layer(full1, 4096, 2, 3)
 
         return model
@@ -101,7 +101,7 @@ class Net(object):
         self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
         self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
         self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
-        self.logits = self.model(self.X)
+        self.logits = self.model(self.X, self.p_hidden)
         self.saver = tf.train.Saver()
 
         self.model_location = model_path + '/' + 'model.ckpt'
@@ -158,7 +158,7 @@ class Net(object):
 
         if self.saved_model:
             print "Testing..."
-            output = self.sess.run(self.logits, feed_dict={self.X:data, self.Y:labels})
+            output = self.sess.run(self.logits, feed_dict={self.X:data, self.Y:labels, self.p_hidden: 1.0})
             accuracy = self.compute_accuracy(output, labels)
             print "Accuracy: " + str(accuracy) + '%'
         else:
@@ -187,14 +187,11 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     def usage_message():
         print "usage:"
-        print "net.py -train <path/to/images1> <path/to/images2>"
-        print "net.py -test <path/to/images1> <path/to/images2>"
-        print "net.py -classify <path/image/to/classify>"
+        print "python bcCNN.py -train <path/to/images1> <path/to/images2>"
+        print "python bcCNN.py -test <path/to/images1> <path/to/images2>"
+        print "python bcCNN.py -classify <path/image/to/classify>"
         print "-link <path/to/save/model>"
         exit()
-
-    # instantiate the net
-    net = Net(pathway)
 
     if len(args) == 2:
         if args[0] == "-classify":
@@ -205,7 +202,10 @@ if __name__ == "__main__":
     if len(args) == 4:
         label_1_images = args[1]
         label_0_images = args[2]
-        pathway = args[4]
+        pathway = args[3]
+
+        #instantiate object Net
+        net = Net(pathway)
 
         if args[0] == "-train":
             data, val_data, labels, val_labels = utils.get_test_and_validation_data(label_1_images, label_0_images)
@@ -213,8 +213,9 @@ if __name__ == "__main__":
             net.train(data, labels, val_data, val_labels)
             exit()
         if args[0] == "-test":
-            data, labels = utils.get_data(label_1_images, label_0_images)
-            net.test(data, labels)
-            exit()
+        	print "here"
+        	data, labels = utils.get_data(label_1_images, label_0_images)
+        	net.test(data, labels)
+        	exit()
 
     usage_message()
