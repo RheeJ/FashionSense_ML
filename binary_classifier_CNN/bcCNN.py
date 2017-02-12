@@ -189,10 +189,11 @@ if __name__ == "__main__":
         print "net.py -train <path/to/images1> <path/to/images2>"
         print "net.py -test <path/to/images1> <path/to/images2>"
         print "net.py -classify <path/image/to/classify>"
+        print "-link <path/to/save/model>"
         exit()
 
     # instantiate the net
-    net = Net()
+    net = Net(pathway)
 
     if len(args) == 2:
         if args[0] == "-classify":
@@ -200,9 +201,10 @@ if __name__ == "__main__":
             print "classification: " + str(net.classify(path))
             exit()
 
-    if len(args) == 3:
+    if len(args) == 4:
         label_1_images = args[1]
         label_0_images = args[2]
+        pathway = args[4]
 
         if args[0] == "-train":
             data, val_data, labels, val_labels = utils.get_test_and_validation_data(label_1_images, label_0_images)
