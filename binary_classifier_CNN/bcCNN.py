@@ -78,19 +78,19 @@ class Net(object):
         """
 
         conv1 = conv_layer(X, [5, 5, 3, 64], [1, 1, 1, 1], 1)
-
-        dropout = tf.nn.dropout(conv1, 0.75)
-
         pool1 = pool_layer(dropout, [1, 2, 2, 1], [1, 2, 2, 1], 1)
+
         conv2 = conv_layer(pool1, [5, 5, 64, 128], [1, 1, 1, 1], 2)
         pool2 = pool_layer(conv2, [1, 2, 2, 1], [1, 2, 2, 1], 2)
+
         conv3 = conv_layer(pool2, [3, 3, 128, 256], [1, 1, 1, 1], 3)
         pool3 = pool_layer(conv3, [1, 2, 2, 1], [1, 2, 2, 1], 3)
 
         reshape_pool3 = tf.reshape(pool3, [-1,  8*8*256])
 
         full1 = full_layer(reshape_pool3, 8*8*256, 4096, 1)
-        #full2 = full_layer(full1, 4096, 256, 2)
+        dropout = tf.nn.dropout(p_hidden)
+        
         model = full_layer(full1, 4096, 2, 3)
 
         return model
@@ -100,6 +100,7 @@ class Net(object):
         self.sess = tf.Session()
         self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
         self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
+        self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
         self.logits = self.model(self.X)
         self.saver = tf.train.Saver()
 
@@ -133,10 +134,10 @@ class Net(object):
                 batches = len(data) // batch_size
                 for batch in range(batches):
                     idx = idxs[batch * batch_size: (batch + 1) * batch_size]
-                    self.sess.run(optimizer, feed_dict={self.X:data[idx], self.Y:labels[idx]})
+                    self.sess.run(optimizer, feed_dict={self.X:data[idx], self.Y:labels[idx], self.p_hidden: 0.5})
 
                 # if epoch % 5 == 0:
-                output = np.array(self.sess.run(self.logits, feed_dict={self.X: validation_data}))
+                output = np.array(self.sess.run(self.logits, feed_dict={self.X: validation_data, self.p_hidden: 1.0}))
                 accuracy = self.compute_accuracy(output, validation_labels)
                 print "epoch "+ str(epoch) + ": " + str(accuracy) + '%'
 
