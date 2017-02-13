@@ -139,6 +139,7 @@ class Net(object):
                 # if epoch % 5 == 0:
                 output = np.array(self.sess.run(self.logits, feed_dict={self.X: validation_data, self.p_hidden: 1.0}))
                 accuracy = self.compute_accuracy(output, validation_labels)
+                cost = self.compute_cost()
                 print "epoch "+ str(epoch) + ": " + str(accuracy) + '%'
 
         except KeyboardInterrupt:

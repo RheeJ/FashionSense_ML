@@ -2,5 +2,5 @@ tensorflow
 numpy
 matplotlib
 scipy
-Pillow
+pillow
 sklearn
