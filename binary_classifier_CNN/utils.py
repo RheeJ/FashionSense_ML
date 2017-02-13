@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.misc import imresize, imread
 from sklearn.model_selection import train_test_split
-
+from PIL import Image
+import random
 
 def _preprocess(imgs):
     """
@@ -18,15 +19,41 @@ def _preprocess(imgs):
 
     return normalized
 
+def transparent_background(image_path):
+    """
+    input: Nordstrom Image Path
+    output: Nordstrom Image without white background
+    """
+    offset = (0,0)
+
+    #TRANSPARENT
+    img = Image.open(image_path)
+    img = img.convert('RGBA')
+    pixel = img.load()
+    w, h = img.size
+    for y in xrange(h):
+        for x in xrange(w):
+            if pixel[x,y] == (255, 255, 255, 255):
+                pixel[x,y] = (255, 255, 255, 0)
+    img = img.resize((64,64), Image.ANTIALIAS)
+
+    #PASTE ON RANDOM BACKGROUND
+    background_file = Image.open(random.choice(os.listdir('bgs/')))
+    background_file.convert('RGBA')
+    background_file = background_file.resize((64,64), Image.ANTIALIAS)
+    background_file.paste(img, offset, img)
+    background_file.convert('RGB')
+
+    return background_file
 
 def load_image(image_path):
     """
     input: path to image
     output: image in numpy array
     """
-
+    img = transparent_background(image_path)
     dims=64
-    img = imresize(plt.imread(image_path), (dims, dims))
+    img = imresize(img, (dims, dims))
 
     return img
 
