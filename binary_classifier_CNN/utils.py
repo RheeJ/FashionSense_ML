@@ -38,7 +38,7 @@ def transparent_background(image_path):
     img = img.resize((64,64), Image.ANTIALIAS)
 
     #PASTE ON RANDOM BACKGROUND
-    background_file = Image.open(random.choice(os.listdir('bgs/')))
+    background_file = Image.open('bgs/'+random.choice(os.listdir('bgs/')))
     background_file.convert('RGBA')
     background_file = background_file.resize((64,64), Image.ANTIALIAS)
     background_file.paste(img, offset, img)
