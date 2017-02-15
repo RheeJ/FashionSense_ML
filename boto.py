@@ -52,10 +52,10 @@ except ClientError:
 # If dirctory, get a list of files (can't do nested directories yet)
 if directory:
     files = [f for f in listdir(pathname) if isfile(join(pathname, f))]
-    print type(files)
-    print "Including files:"
+    print "\nIncluding files:"
     for item in files:
         print item
+    print "\n"
 else:
     files = pathname
 
@@ -63,7 +63,6 @@ else:
 #s3_connection = boto3.connect_s3()
 #bucket = s3.get_bucket(bucket)
 for item in files:
-    print item
     if directory:
         name = pathname+"/"+item
     elif sub_bucket != False:
