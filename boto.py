@@ -2,19 +2,25 @@ import boto3
 import sys, os
 from os import listdir
 from os.path import isfile, join
-onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
 def usage_message():
     print "This script allows you to upload files to the aws buckets!"
-    print "Usage: python boto.py [-f=<file to upload>][-b=<bucket name>]"
+    print "Usage: python boto.py [-f=<file to upload>][-b=<bucket name>] optional: [-s=bucket folder]"
     exit()
 
 # Get inputs
+args = sys.argv[1:]
 if len(args) < 2:
     usage_message()
+elif len(args) == 3:
+    pathname = args[0]
+    bucket = args[1]
+    sub_bucket = args[2]
 else:
     pathname = args[0]
     bucket = args[1]
+    sub_bucket = False
+
 
 # Shortening the s3 command, nothing special
 s3 = boto3.resource('s3')
@@ -22,46 +28,51 @@ s3 = boto3.resource('s3')
 # Confirm file or directory path exists/check if directory
 if os.path.isfile(pathname):
     print "Uploading file " + pathname
-elif os.path.isdir(pathname):
     directory = False
+elif os.path.isdir(pathname):
     print "Uploading file" + pathname
     directory = True
 else:
     print "Sorry, I couldn't find that file"
+    os._exit(1)
 
 # Confirm bucket exists
-for bucket in s3.buckets.all():
-    print "Now accessing bucket " + bucket
+from botocore.client import ClientError
 bucket = s3.Bucket(bucket)
+print "Now accessing bucket " + bucket.name
 exists = True
 try:
-    s3.meta.client.head_bucket(Bucket=bucket)
+    s3.meta.client.head_bucket(Bucket=bucket.name)
     print "Bucket found!"
-except botocore.exceptions.ClientError as e:
+except ClientError:
+    # The bucket does not exist or you have no access.
     print "Bucket not found"
-    error_code = int(e.response['Error']['Code'])
-    if error_code == 404:
-        exists = False
+    os._exit(2)
 
 # If dirctory, get a list of files (can't do nested directories yet)
 if directory:
     files = [f for f in listdir(pathname) if isfile(join(pathname, f))]
-    print files
+    print type(files)
+    print "Including files:"
+    for item in files:
+        print item
 else:
     files = pathname
 
 # Smaller than 5GB upload
-s3_connection = boto.connect_s3()
-bucket = s3_connection.get_bucket(bucket)
-for this_file in files
+#s3_connection = boto3.connect_s3()
+#bucket = s3.get_bucket(bucket)
+for item in files:
+    print item
     if directory:
-        name = directory+this_file
+        name = pathname+"/"+item
+    elif sub_bucket != False:
+        name = sub_bucket+"/"+item
     else:
-        name = this_file
+        name = item
     print "Now uploading "+name
-    key = boto.s3.key.Key(bucket, name)
-    with open(name) as f:
-        key.send_file(f)
-print "Uploading complete"
+    data = open(name, 'rb')
+    s3.Bucket(bucket.name).put_object(Key=name, Body=data)
+print "Uploading complete!"
 
 # Larger than 5GB upload
