@@ -4,12 +4,12 @@ from flask import Flask
 import sys, os
 from binary_classifier_CNN import bcCNN
 from app_utils import do_everything
+
+
 def usage_message():
     print "This script connects bCNNs to the endpoint host (i think)"
     print "Usage: python app.py [-m=<module names>]"
     exit()
-
-log('running')
 
 args = sys.argv[1:]
 
