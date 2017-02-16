@@ -3,7 +3,7 @@ from flask import request
 from flask import Flask
 import sys, os
 from binary_classifier_CNN import bcCNN
-from app_utils import do_everything
+from utils import get_classifications
 
 
 def usage_message():
@@ -24,7 +24,7 @@ app = Flask(__name__)
 
 def index():
     filepath = request.get_json()["file_path"]
-    classifications_dict = do_everything(image)
+    classifications_dict = get_classifications(image)
     result = json.dumps(classifications_dict)
     return result
 
