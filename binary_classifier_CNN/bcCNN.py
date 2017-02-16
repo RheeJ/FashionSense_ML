@@ -173,7 +173,7 @@ class Net(object):
         if self.saved_model:
             img = [utils.load_image(image_path)]
             print "classifying..."
-            output = np.argmax(self.sess.run(self.logits, feed_dict={self.X: img})[0])
+            output = np.argmax(self.sess.run(self.logits, feed_dict={self.X: img, self.p_hidden: 1.0})[0])
             return output
         else:
             print "Model does not exist yet...train first"
