@@ -6,18 +6,6 @@ from binary_classifier_CNN import bcCNN
 from utils import get_classifications
 
 
-def usage_message():
-    print "This script connects bCNNs to the endpoint host (i think)"
-    print "Usage: python app.py [-m=<module names>]"
-    exit()
-
-args = sys.argv[1:]
-
-if len(args) < 1:
-    usage_message()
-
-trained_models = args[0]
-
 app = Flask(__name__)
 
 @app.route('/', methods=['POST'])
