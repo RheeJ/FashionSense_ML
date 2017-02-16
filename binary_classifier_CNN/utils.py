@@ -26,6 +26,7 @@ def load_image(image_path):
     """
 
     dims=64
+    print image_path
     img = imresize(plt.imread(image_path), (dims, dims))
 
     return img
