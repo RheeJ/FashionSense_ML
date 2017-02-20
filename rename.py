@@ -21,8 +21,6 @@ if __name__ == "__main__":
     saver = tf.train.Saver()
 
     model_location = old_path + 'model.ckpt'
-    print model_location
-    exit()
     model_meta_path = model_location + '.meta'
 
     saver = tf.train.import_meta_graph(model_meta_path)
