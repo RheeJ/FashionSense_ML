@@ -5,7 +5,3 @@ scipy
 Pillow
 sklearn
 flask
-<<<<<<< HEAD:requirements.txt
-coverage
-=======
->>>>>>> c27ab3e61d1d13d27ad8a282761682fc74e9d837:requirements.txt
