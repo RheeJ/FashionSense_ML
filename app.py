@@ -1,37 +1,50 @@
 import json
+import tempfile
 from flask import request
 from flask import Flask
+from flask import abort
 import sys, os
 from binary_classifier_CNN import bcCNN
-from app_utils import do_everything
-def usage_message():
-    print "This script connects bCNNs to the endpoint host (i think)"
-    print "Usage: python app.py [-m=<module names>]"
-    exit()
+from utils import get_classifications
+from utils import get_classifiers
 
-log('running')
 
-args = sys.argv[1:]
+# get trained models
+classifers = get_classifiers()
 
-if len(args) < 1:
-    usage_message()
+def get_classifications_wrapper(temp_file):
+    return get_classifications(classifers, temp_file)
 
-trained_models = args[0]
-
+# webapp
 app = Flask(__name__)
 
 @app.route('/', methods=['POST'])
-
 def index():
-    filepath = request.get_json()["file_path"]
-    classifications_dict = do_everything(image)
+
+    # write binary data to temp file
+    data = request.get_data()
+    if data == None:
+        abort(400)
+
+    temp = tempfile.TemporaryFile()
+    temp.write(data)
+    temp.seek(0)
+
+    # get the classifications from net
+    classifications_dict = get_classifications_wrapper(temp)
+
+    # close temp file
+    temp.close()
+
     result = json.dumps(classifications_dict)
     return result
 
 if __name__ == "__main__":
 
-   debug = os.environ.get('DEBUG')
-   if debug:
-       app.run(debug=True)
-   else:
-       app.run(host="0.0.0.0")
+    # if you want to run in debug set the environment variable in teminal
+    # $ export DEBUG=1
+    debug = os.environ.get('DEBUG')
+    if debug:
+        app.run(debug=True)
+    else:
+        app.run(host="0.0.0.0")

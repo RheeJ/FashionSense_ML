@@ -2,8 +2,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.misc import imresize, imread
-from sklearn.model_selection import train_test_split
-
+#from sklearn.model_selection import train_test_split
+from sklearn.cross_validation import train_test_split
 
 def _preprocess(imgs):
     """
@@ -26,6 +26,7 @@ def load_image(image_path):
     """
 
     dims=64
+    print image_path
     img = imresize(plt.imread(image_path), (dims, dims))
 
     return img

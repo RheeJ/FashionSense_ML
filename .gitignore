@@ -1,2 +1,4 @@
 *.pyc
 classifiers/
+*.csv
+.coverage
