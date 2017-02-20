@@ -15,7 +15,7 @@ def get_classifiers(directory="./classifiers"):
         model_path = path[0]
         net = bcCNN.Net(model_path)
         category = model_path.split('/')[1]
-        classifications[category] = net
+        classifiers[category] = net
 
     return classifiers
 
