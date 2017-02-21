@@ -1,3 +1,4 @@
+boto3
 gunicorn
 tensorflow
 numpy

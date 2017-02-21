@@ -2,3 +2,4 @@
 classifiers/
 *.csv
 .coverage
+images/
