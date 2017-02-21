@@ -11,10 +11,10 @@ def get_classifiers(directory="./classifiers"):
     """
 
     classifiers = {}
-    for path in list(os.walk("classifiers"))[1:]:
+    for path in list(os.walk(directory))[1:]:
         model_path = path[0]
-        net = bcCNN.Net(model_path)
-        category = model_path.split('/')[1]
+        category = model_path.split('/')[2]
+        net = bcCNN.Net(directory, category)
         classifiers[category] = net
 
     return classifiers

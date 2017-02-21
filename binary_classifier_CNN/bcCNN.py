@@ -5,14 +5,14 @@ import sys
 import os
 
 
-def conv_layer(X, kernel, strides, number):
+def conv_layer(X, category, kernel, strides, number):
     """
     inputs: dimensions of convolutional layers and pooling
     output: the pooling layer
     """
     output_size = kernel[3]
 
-    with tf.name_scope('conv' + str(number)) as scope:
+    with tf.name_scope('conv' + category + str(number)) as scope:
         kernel = tf.Variable(tf.truncated_normal(kernel, dtype=tf.float32,
                                                stddev=1e-1), name='weights')
         conv = tf.nn.conv2d(X, kernel, strides, padding='SAME')
@@ -24,7 +24,7 @@ def conv_layer(X, kernel, strides, number):
     return conv
 
 
-def pool_layer(X, ksize, kstrides, number):
+def pool_layer(X, category, ksize, kstrides, number):
     """
     inputs: takes in the parameters to create a pooling layer
     output: pooling tensor
@@ -34,23 +34,49 @@ def pool_layer(X, ksize, kstrides, number):
                            ksize=ksize,
                            strides=kstrides,
                            padding='SAME',
-                           name='pool' + str(number))
+                           name='pool' + category + str(number))
 
     return pool
 
 
-def full_layer(X, input_size, output_size, number):
+def full_layer(X, category, input_size, output_size, number):
     """
     inputs: dimensions of fully connected layer
     output: the fully connected layer
     """
 
-    with tf.name_scope("full" + str(number)) as scope:
+    with tf.name_scope("full" + category + str(number)) as scope:
         W = tf.Variable(tf.random_normal([input_size, output_size]), name='W')
         b = tf.Variable(tf.constant([output_size], dtype=tf.float32), name='b')
         full = tf.matmul(X, W) + b
 
     return full
+
+
+def model(X, category, p_hidden):
+    """
+    output: return the model
+    """
+
+    conv1 = conv_layer(X, category, [5, 5, 3, 64], [1, 1, 1, 1], 1)
+    pool1 = pool_layer(conv1, category, [1, 2, 2, 1], [1, 2, 2, 1], 1)
+
+    conv2 = conv_layer(pool1, category, [5, 5, 64, 128], [1, 1, 1, 1], 2)
+    pool2 = pool_layer(conv2, category, [1, 2, 2, 1], [1, 2, 2, 1], 2)
+
+    conv3 = conv_layer(pool2, category, [3, 3, 128, 256], [1, 1, 1, 1], 3)
+    pool3 = pool_layer(conv3, category, [1, 2, 2, 1], [1, 2, 2, 1], 3)
+
+    reshape_pool3 = tf.reshape(pool3, [-1,  8*8*256])
+
+    full1 = full_layer(reshape_pool3, category, 8*8*256, 4096, 1)
+
+    #TODO: dropout having naming issue
+    #full1 = tf.nn.dropout(full1, p_hidden)
+
+    model = full_layer(full1, category, 4096, 2, 3)
+
+    return model
 
 
 class Net(object):
@@ -71,43 +97,23 @@ class Net(object):
 
         return (float(correct) / float(length_data)) * 100
 
-    @staticmethod
-    def model(X, p_hidden):
-        """
-        output: return the model
-        """
+    def __init__(self, directory, category):
 
-        conv1 = conv_layer(X, [5, 5, 3, 64], [1, 1, 1, 1], 1)
-        pool1 = pool_layer(conv1, [1, 2, 2, 1], [1, 2, 2, 1], 1)
-
-        conv2 = conv_layer(pool1, [5, 5, 64, 128], [1, 1, 1, 1], 2)
-        pool2 = pool_layer(conv2, [1, 2, 2, 1], [1, 2, 2, 1], 2)
-
-        conv3 = conv_layer(pool2, [3, 3, 128, 256], [1, 1, 1, 1], 3)
-        pool3 = pool_layer(conv3, [1, 2, 2, 1], [1, 2, 2, 1], 3)
-
-        reshape_pool3 = tf.reshape(pool3, [-1,  8*8*256])
-
-        full1 = full_layer(reshape_pool3, 8*8*256, 4096, 1)
-        full1 = tf.nn.dropout(full1, p_hidden)
-
-        model = full_layer(full1, 4096, 2, 3)
-
-        return model
-
-    def __init__(self, model_path):
+        model_path = directory + '/' + category
 
         self.sess = tf.Session()
         self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
         self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
         self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
-        self.logits = self.model(self.X, self.p_hidden)
+        self.logits = model(self.X, '', self.p_hidden)
         self.saver = tf.train.Saver()
 
         self.model_location = model_path + '/' + 'model.ckpt'
         model_meta_path = self.model_location + '.meta'
 
         self.saved_model = False
+        print "META"
+        print model_meta_path
         if os.path.isfile(model_meta_path):
             self.saver = tf.train.import_meta_graph(model_meta_path)
             self.saver.restore(self.sess, tf.train.latest_checkpoint(model_path))
