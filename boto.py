@@ -106,7 +106,7 @@ def download(bucket, filename, dest):
     if os.path.isdir(dir_path):
         print "Saving file to "+dir_path
     else:
-        print "Sorry, I couldn't find the destination location"
+        print "Sorry, I couldn't find the destination "+dir_path
         prompt = raw_input('Would you like to create this destination, type y or n: ')
         if prompt == "y":
             os.makedirs(dir_path)
