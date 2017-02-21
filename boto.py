@@ -98,14 +98,19 @@ def upload(pathname, bucket, sub_bucket):
 # Downloading function
 def download(bucket, filename, dest):
     # Confirm file or directory path exists/check if directory
-    if os.path.isdir(dest):
-        print "Saving file to "+dest
+    tmp = dest.split("/")
+    dir_path = ""
+    for i in range(len(tmp)-1):
+        dir_path = dir_path+tmp[i]
+    print dir_path
+    if os.path.isdir(dir_path):
+        print "Saving file to "+dir_path
     else:
         print "Sorry, I couldn't find the destination location"
-        prompt = raw_input('Would you like to create this destination, type Y or N: ')
-        if prompt == "Y":
-            os.makedirs(dest)
-            print "Downloading to "+dest
+        prompt = raw_input('Would you like to create this destination, type y or n: ')
+        if prompt == "y":
+            os.makedirs(dir_path)
+            print "Downloading to "+dir_path
         else:
             print "Program terminating"
             os._exit(1)
@@ -130,7 +135,7 @@ def download(bucket, filename, dest):
     else:
         print "Target "+target+" found, download in progress"
     # Download the file to destination
-    s3.meta.client.download_file(bucket.name, target, dest+"1.jpg")
+    s3.meta.client.download_file(bucket.name, target, dest)
     print "File download complete!"
 
 # Choosing which to run
