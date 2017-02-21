@@ -21,6 +21,7 @@ def down_usage_message():
     prompt = raw_input('Would you like an example, type y or n: ')
     if prompt == "y":
         print "Example: 'python boto.py -down imagedataset/beach/0.jpg imagedataset images/0.jpg' will save the first image in the beach folder from the imagedataset bucket to a file called 0.jpg in the directory images within your current working directory"
+    exit()
 
 # Get inputs
 args = sys.argv[1:]
@@ -101,8 +102,7 @@ def download(bucket, filename, dest):
     tmp = dest.split("/")
     dir_path = ""
     for i in range(len(tmp)-1):
-        dir_path = dir_path+tmp[i]
-    print dir_path
+        dir_path = dir_path+tmp[i]+"/"
     if os.path.isdir(dir_path):
         print "Saving file to "+dir_path
     else:
