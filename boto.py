@@ -2,6 +2,8 @@ import boto3
 import sys, os
 from os import listdir
 from os.path import isfile, join
+from botocore.client import ClientError
+
 
 def usage_message():
     print "This script communicates with aws buckets!"
@@ -16,17 +18,21 @@ def up_usage_message():
 def down_usage_message():
     print "This script allows you to download files from the aws buckets!"
     print "Usage: python boto.py -down [-f=<file/folder to download>][-b=<bucket name>][-l=<local destination>]"
+    prompt = raw_input('Would you like an example, type y or n: ')
+    if prompt == "y":
+        print "Example: 'python boto.py -down imagedataset/beach/0.jpg imagedataset images/0.jpg' will save the first image in the beach folder from the imagedataset bucket to a file called 0.jpg in the directory images within your current working directory"
 
 # Get inputs
 args = sys.argv[1:]
-if args[0] == "-up":
+method = args[0]
+if method == "-down":
     if len(args) != 4:
-        up_usage_message()
+        down_usage_message()
     else:
         pathname = args[1]
         bucket = args[2]
         dest = args[3]
-elif args[0] == "-down":
+elif method == "-up":
     if len(args) < 3:
         down_usage_message()
     elif len(args) == 4:
@@ -40,7 +46,6 @@ elif args[0] == "-down":
 else:
     usage_message()
 
-print "running"
 # Shortening the s3 command, nothing special
 s3 = boto3.resource('s3')
 client = boto3.client('s3')
@@ -52,25 +57,22 @@ def upload(pathname, bucket, sub_bucket):
         print "Uploading file " + pathname
         directory = False
     elif os.path.isdir(pathname):
-        print "Uploading file" + pathname
+        print "Uploading directory " + pathname
         directory = True
     else:
-        print "Sorry, I couldn't find that file"
+        print "Sorry, I couldn't find that file or directory"
         os._exit(1)
-
     # Confirm bucket exists
-    from botocore.client import ClientError
     bucket = s3.Bucket(bucket)
-    print "Now accessing bucket " + bucket.name
+    print "Now accessing bucket "+bucket.name
     exists = True
     try:
         s3.meta.client.head_bucket(Bucket=bucket.name)
         print "Bucket found!"
     except ClientError:
-        # The bucket does not exist or you have no access.
+        # The bucket does not exist or you have no access
         print "Bucket not found"
         os._exit(2)
-
     # If dirctory, get a list of files (can't do nested directories yet)
     if directory:
         files = [f for f in listdir(pathname) if isfile(join(pathname, f))]
@@ -80,7 +82,7 @@ def upload(pathname, bucket, sub_bucket):
             print "\n"
         else:
             files = pathname
-
+    # Begin actual upload
     for item in files:
         if directory:
             name = pathname+"/"+item
@@ -93,28 +95,51 @@ def upload(pathname, bucket, sub_bucket):
         s3.Bucket(bucket.name).put_object(Key=name, Body=data)
     print "Uploading complete!"
 
-def download(bucket, file, dest):
+# Downloading function
+def download(bucket, filename, dest):
+    # Confirm file or directory path exists/check if directory
+    if os.path.isdir(dest):
+        print "Saving file to "+dest
+    else:
+        print "Sorry, I couldn't find the destination location"
+        prompt = raw_input('Would you like to create this destination, type Y or N: ')
+        if prompt == "Y":
+            os.makedirs(dest)
+            print "Downloading to "+dest
+        else:
+            print "Program terminating"
+            os._exit(1)
+    # Confirm bucket exists
     bucket = s3.Bucket(bucket)
-    bucket.download_file(file, dest)
+    print "Now accessing bucket "+bucket.name
+    exists = True
+    try:
+        s3.meta.client.head_bucket(Bucket=bucket.name)
+        print "Bucket found!"
+    except ClientError:
+        # The bucket does not exist or you have no access.
+        print "Bucket not found"
+        os._exit(2)
+    # Check if target file or folder is in bucket
+    target = filename[len(bucket.name)+1:]
+    try:
+        s3.Object(bucket.name, target).get()
+    except ClientError:
+        print "Target "+target+" not found"
+        os._exit(3)
+    else:
+        print "Target "+target+" found, download in progress"
+    # Download the file to destination
+    s3.meta.client.download_file(bucket.name, target, dest+"1.jpg")
     print "File download complete!"
 
-"""
-print "Getting list"
-listy=client.list_objects(Bucket='imagedataset')['Contents']
-print listy[0]
-client.download_file('imagedataset', listy[0]['Key'], listy[0]['Key'])
-
-download_dir(client, s3, 'clientconf/', '/tmp')
-# Downloading function
-def download_dir(client, resource, dist, local='/tmp', bucket='your_bucket'):
-    paginator = client.get_paginator('list_objects')
-    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist):
-        if result.get('CommonPrefixes') is not None:
-            for subdir in result.get('CommonPrefixes'):
-                download_dir(client, resource, subdir.get('Prefix'), local, bucket)
-        if result.get('Contents') is not None:
-            for file in result.get('Contents'):
-                if not os.path.exists(os.path.dirname(local + os.sep + file.get('Key'))):
-                     os.makedirs(os.path.dirname(local + os.sep + file.get('Key')))
-                resource.meta.client.download_file(bucket, file.get('Key'), local + os.sep + file.get('Key'))
-"""
+# Choosing which to run
+if method == "-down":
+    print "Downloading beginning"
+    download(bucket, pathname, dest)
+elif method == "-up":
+    print "Uploading beginning"
+    upload(pathname, bucket, sub_bucket)
+else:
+    print "No correct method found, exiting program"
+    exit()
