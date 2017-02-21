@@ -82,7 +82,7 @@ def upload(pathname, bucket, sub_bucket):
             print item
             print "\n"
     else:
-        files = pathname
+        files[0] = pathname
     # Begin actual upload
     for item in files:
         if directory:
