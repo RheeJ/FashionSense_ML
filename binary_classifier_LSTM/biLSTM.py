@@ -20,7 +20,7 @@ class lstm(object):
 		self.train_step = tf.train.RMSPropOptimizer(.001, .9).minimize(self.cost)
 		self.prediction = tf.greater(self.logits, 0)
 		self.correct_answer = Y
-        self.saver = tf.train.Saver()
+		self.saver = tf.train.Saver()
 
 	def model(self, X):
 		XT = tf.transpose(X, [1,0,2])
@@ -33,7 +33,7 @@ class lstm(object):
 		backward_cell = tf.nn.rnn_cell.BasicLSTMCell(self.lstm_size, forget_bias=1.0, state_is_tuple=True)
 		outputs, _, _ = tf.nn.bidirectional_rnn(forward_cell, backward_cell, XS, dtype=tf.float32)
 		fc_layer = tf.matmul(outputs[-1], self.W) + self.B
-	    return fc_layer
+		return fc_layer
 
 	def train(self):
 		train_X = #function to load train_X
@@ -47,7 +47,7 @@ class lstm(object):
 					print "Saving the Model"
 					self.saver.save(self.sess, 'lstm_weights/model.ckpt')
 					print "Saved"
-					exit()		
+					exit()      
 		print "Saving the Model"
 		self.saver.save(self.sess, 'lstm_weights/model.ckpt')
 		print "Saved"
