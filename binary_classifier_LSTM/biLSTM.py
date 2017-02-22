@@ -42,7 +42,7 @@ class lstm(object):
 		for i in range(500):
 			for start,end in zip(range(0, len(train_X), 128), range(128, len(train_X)+1, 128)):
 				try:
-					self.sess.run(self.train_op, feed_dict={self.X: train_X[start:end], self.Y: train_Y[start:end]})
+					self.sess.run(self.train_step, feed_dict={self.X: train_X[start:end], self.Y: train_Y[start:end]})
 				except KeyboardInterrupt:
 					print "Saving the Model"
 					self.saver.save(self.sess, 'lstm_weights/model.ckpt')
@@ -57,6 +57,6 @@ class lstm(object):
 		ckpt = tf.train.get_checkpoint_state('./lstm_weights/')
 		if ckpt and ckpt.model_checkpoint_path:
 			self.saver.restore(self.sess, ckpt.model_checkpoint_path)
-			return self.sess.run(self.predict_op, feed_dict={self.X: test_X})
+			return self.sess.run(self.prediction, feed_dict={self.X: test_X})
 		else:
 			return "Could not load the model"
