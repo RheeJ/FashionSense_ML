@@ -11,15 +11,15 @@ def conv_layer(X, category, kernel, strides, number):
     output: the pooling layer
     """
     output_size = kernel[3]
-
     with tf.name_scope('conv/' + category + str(number)) as scope:
+
         kernel = tf.Variable(tf.truncated_normal(kernel, dtype=tf.float32,
-                                               stddev=1e-1), name='weights')
+                                               stddev=1e-1), name='weights/' + category + '1')
         conv = tf.nn.conv2d(X, kernel, strides, padding='SAME')
         biases = tf.Variable(tf.constant(0.0, shape=[output_size], dtype=tf.float32),
-                           trainable=True, name='b')
+                           trainable=True, name='biases/' + category + '1')
         bias = tf.nn.bias_add(conv, biases)
-        conv = tf.nn.relu(bias, name=scope)
+        conv = tf.nn.relu(bias, name="relu/"+ category + str(number))
 
     return conv
 
@@ -31,10 +31,10 @@ def pool_layer(X, category, ksize, kstrides, number):
     """
 
     pool = tf.nn.max_pool(X,
-                           ksize=ksize,
-                           strides=kstrides,
-                           padding='SAME',
-                           name='pool/' + category + str(number))
+                          ksize=ksize,
+                          strides=kstrides,
+                          padding='SAME',
+                          name='pool/' + category + str(number))
 
     return pool
 
@@ -46,8 +46,8 @@ def full_layer(X, category, input_size, output_size, number):
     """
 
     with tf.name_scope('full/' + category + str(number)) as scope:
-        W = tf.Variable(tf.random_normal([input_size, output_size]), name='W')
-        b = tf.Variable(tf.constant([output_size], dtype=tf.float32), name='b')
+        W = tf.Variable(tf.random_normal([input_size, output_size]), name='weights/' + category + '2')
+        b = tf.Variable(tf.constant([output_size], dtype=tf.float32), name='biases/' + category + '2')
         full = tf.matmul(X, W) + b
 
     return full
@@ -101,12 +101,17 @@ class Net(object):
 
         model_path = directory + '/' + category
 
-        self.sess = tf.Session()
+        new_graph = tf.Graph()
+        self.sess = tf.Session(graph=new_graph)
         self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
         self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
         self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
         self.logits = model(self.X, category, self.p_hidden)
         self.saver = tf.train.Saver()
+
+                cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.Y))
+                learning_rate = 0.0001
+                self.optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
         self.model_location = model_path + '/' + 'model.ckpt'
         model_meta_path = self.model_location + '.meta'
@@ -114,17 +119,13 @@ class Net(object):
         self.saved_model = False
         if os.path.isfile(model_meta_path):
             self.saver = tf.train.import_meta_graph(model_meta_path)
-            self.saver.restore(self.sess, tf.train.latest_checkpoint(model_path))
+            # self.saver.restore(self.sess, tf.train.latest_checkpoint(model_path))
             self.saved_model = True
 
     def train(self, data, labels, validation_data, validation_labels):
         """
         train model
         """
-
-        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.Y))
-        learning_rate = 0.0001
-        optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
         self.sess.run(tf.global_variables_initializer())
 
@@ -138,7 +139,7 @@ class Net(object):
                 batches = len(data) // batch_size
                 for batch in range(batches):
                     idx = idxs[batch * batch_size: (batch + 1) * batch_size]
-                    self.sess.run(optimizer, feed_dict={self.X:data[idx], self.Y:labels[idx], self.p_hidden: 0.5})
+                    self.sess.run(self.optimizer, feed_dict={self.X:data[idx], self.Y:labels[idx], self.p_hidden: 0.5})
 
                 # if epoch % 5 == 0:
                 output = np.array(self.sess.run(self.logits, feed_dict={self.X: validation_data, self.p_hidden: 1.0}))

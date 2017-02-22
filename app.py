@@ -8,7 +8,6 @@ from binary_classifier_CNN import bcCNN
 from utils import get_classifications
 from utils import get_classifiers
 
-
 # get trained models
 classifers = get_classifiers()
 
