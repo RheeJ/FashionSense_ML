@@ -11,15 +11,14 @@ def conv_layer(X, category, kernel, strides, number):
     output: the pooling layer
     """
     output_size = kernel[3]
-    with tf.name_scope('conv/' + category + str(number)) as scope:
-
-        kernel = tf.Variable(tf.truncated_normal(kernel, dtype=tf.float32,
-                                               stddev=1e-1), name='weights/' + category + '1')
-        conv = tf.nn.conv2d(X, kernel, strides, padding='SAME')
-        biases = tf.Variable(tf.constant(0.0, shape=[output_size], dtype=tf.float32),
-                           trainable=True, name='biases/' + category + '1')
-        bias = tf.nn.bias_add(conv, biases)
-        conv = tf.nn.relu(bias, name="relu/"+ category + str(number))
+    # with tf.name_scope('conv' + str(number)) as scope:
+    kernel = tf.Variable(tf.truncated_normal(kernel, dtype=tf.float32,
+                                           stddev=1e-1), name=category + '/conv/weights' + str(number))
+    conv = tf.nn.conv2d(X, kernel, strides, padding='SAME')
+    biases = tf.Variable(tf.constant(0.0, shape=[output_size], dtype=tf.float32),
+                       trainable=True, name=category + '/conv/biases' + str(number))
+    bias = tf.nn.bias_add(conv, biases)
+    conv = tf.nn.relu(bias, name=category + '/conv/relu' + str(number))
 
     return conv
 
@@ -34,7 +33,7 @@ def pool_layer(X, category, ksize, kstrides, number):
                           ksize=ksize,
                           strides=kstrides,
                           padding='SAME',
-                          name='pool/' + category + str(number))
+                          name=category + '/pool' + str(number))
 
     return pool
 
@@ -45,10 +44,10 @@ def full_layer(X, category, input_size, output_size, number):
     output: the fully connected layer
     """
 
-    with tf.name_scope('full/' + category + str(number)) as scope:
-        W = tf.Variable(tf.random_normal([input_size, output_size]), name='weights/' + category + '2')
-        b = tf.Variable(tf.constant([output_size], dtype=tf.float32), name='biases/' + category + '2')
-        full = tf.matmul(X, W) + b
+    # with tf.name_scope('full' + str(number)) as scope:
+    W = tf.Variable(tf.random_normal([input_size, output_size]), name=category + '/full/weights' + str(number))
+    b = tf.Variable(tf.constant([output_size], dtype=tf.float32), name=category + '/full/biases' + str(number))
+    full = tf.matmul(X, W) + b
 
     return full
 
@@ -72,7 +71,7 @@ def model(X, category, p_hidden):
     full1 = full_layer(reshape_pool3, category, 8*8*256, 4096, 1)
 
     #TODO: dropout having naming issue
-    #full1 = tf.nn.dropout(full1, p_hidden)
+    # full1 = tf.nn.dropout(full1, category, p_hidden)
 
     model = full_layer(full1, category, 4096, 2, 3)
 
@@ -100,26 +99,32 @@ class Net(object):
     def __init__(self, directory, category):
 
         model_path = directory + '/' + category
+        if not os.path.exists(model_path):
+            os.makedirs(model_path)
 
-        new_graph = tf.Graph()
-        self.sess = tf.Session(graph=new_graph)
+        # new_graph = tf.Graph()
+        self.sess = tf.Session() # graph=new_graph)
+
         self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
         self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
         self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
         self.logits = model(self.X, category, self.p_hidden)
-        self.saver = tf.train.Saver()
+        for v in tf.all_variables():
 
-                cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.Y))
-                learning_rate = 0.0001
-                self.optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
+            if "garbage" in v.name:
+                print v.name
+
+        self.saver = tf.train.Saver()
 
         self.model_location = model_path + '/' + 'model.ckpt'
         model_meta_path = self.model_location + '.meta'
 
         self.saved_model = False
+        ckpt = tf.train.get_checkpoint_state(model_path)
+
         if os.path.isfile(model_meta_path):
             self.saver = tf.train.import_meta_graph(model_meta_path)
-            # self.saver.restore(self.sess, tf.train.latest_checkpoint(model_path))
+            self.saver.restore(self.sess, ckpt.model_checkpoint_path) # tf.train.latest_checkpoint(model_path))
             self.saved_model = True
 
     def train(self, data, labels, validation_data, validation_labels):
@@ -128,6 +133,10 @@ class Net(object):
         """
 
         self.sess.run(tf.global_variables_initializer())
+
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.Y))
+        learning_rate = 0.0001
+        optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
         batch_size = 100
         epochs = 100
@@ -204,11 +213,14 @@ if __name__ == "__main__":
             exit()
 
 
-
-    if len(args) >= 3:
+    if len(args) == 5:
 
         label_1_images = args[1]
+        if label_1_images[-1] == '/':
+            label_1_images = label_1_images[:-1]
         label_0_images = args[2]
+        if label_0_images[-1] == '/':
+            label_0_images = label_0_images[:-1]
         directory = args[3]
         category = args[4]
 
