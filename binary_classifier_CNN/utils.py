@@ -29,7 +29,7 @@ def load_image(image_path):
 
     dims=64
     print image_path
-    img = imresize(Image.open(image_path).load(), (dims, dims))
+    img = imresize(Image.open(image_path), (dims, dims))
 
     return img
 

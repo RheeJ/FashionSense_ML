@@ -73,7 +73,7 @@ def model(X, category, p_hidden):
     #TODO: dropout having naming issue
     # full1 = tf.nn.dropout(full1, category, p_hidden)
 
-    model = full_layer(full1, category, 4096, 2, 3)
+    model = full_layer(full1, category, 4096, 2, 2)
 
     return model
 
@@ -104,32 +104,36 @@ class Net(object):
 
         self.sess = tf.Session()
 
-        self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
-        self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
-        self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
-        self.logits = model(self.X, category, self.p_hidden)
-        for v in tf.all_variables():
-
-            if "garbage" in v.name:
-                print v.name
-        self.saver = tf.train.Saver()
-
         self.model_location = model_path + '/' + 'model.ckpt'
         model_meta_path = self.model_location + '.meta'
 
-        self.saved_model = False
         ckpt = tf.train.get_checkpoint_state(model_path)
 
-        if os.path.isfile(model_meta_path):
-        
-            new_graph = tf.Graph()
-            with new_graph.as_default():
-            
-            #self.sess = tf.Session(graph=new_graph)
+        self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
+        self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
+        self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
 
-                self.saver = tf.train.import_meta_graph(model_meta_path)
-            #self.saver.restore(self.sess, ckpt.model_checkpoint_path) # tf.train.latest_checkpoint(model_path))
+        self.saved_model = False
+        self.logits = None
+        if not(os.path.isfile(model_meta_path)):
+            self.logits = model(self.X, category, self.p_hidden)
+            self.saver = tf.train.Saver()
+        elif ckpt:
+            # new_graph = tf.Graph()
+            # with new_graph.as_default():
+            #self.sess = tf.Session(graph=new_graph)
+            self.saver = tf.train.import_meta_graph(model_meta_path)
+            graph = tf.get_default_graph()
+            self.saver.restore(self.sess, ckpt.model_checkpoint_path) # tf.train.latest_checkpoint(model_path))
+            self.logits = graph.get_tensor_by_name('trash/full/biases3:0')
+            # for v in tf.all_variables():
+            #     if v.name == category + '/full/biases3':
+            #        self.logits = v
+            #     print v.name
             self.saved_model = True
+        else:
+            print "Model does not exist"
+            exit()
 
     def train(self, data, labels, validation_data, validation_labels):
         """

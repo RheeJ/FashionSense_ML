@@ -1,5 +1,6 @@
 *.pyc
-classifiers/
+*.jpg
 *.csv
 .coverage
+classifiers/
 images/

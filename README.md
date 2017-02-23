@@ -11,6 +11,11 @@ $ pip install -r requirements.txt
 ```
 
 ## Usage
+* before running the app load the models with the following conventions so they can automatically be served on the endpoint
+    * create a directory called classifiers
+    * create subdirectories in classifiers for each classification that you want your endpoint to support
+    * name these subdirectories with the name of the classification you want
+    * fill the subdirectories with their respective checkpoint and model.ckpt files
 * to run with Docker
     * first build everything with Docker
     ```
