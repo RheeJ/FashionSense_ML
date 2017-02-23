@@ -102,8 +102,7 @@ class Net(object):
         if not os.path.exists(model_path):
             os.makedirs(model_path)
 
-        # new_graph = tf.Graph()
-        self.sess = tf.Session() # graph=new_graph)
+        self.sess = tf.Session()
 
         self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
         self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
@@ -113,7 +112,6 @@ class Net(object):
 
             if "garbage" in v.name:
                 print v.name
-
         self.saver = tf.train.Saver()
 
         self.model_location = model_path + '/' + 'model.ckpt'
@@ -123,20 +121,27 @@ class Net(object):
         ckpt = tf.train.get_checkpoint_state(model_path)
 
         if os.path.isfile(model_meta_path):
-            self.saver = tf.train.import_meta_graph(model_meta_path)
-            self.saver.restore(self.sess, ckpt.model_checkpoint_path) # tf.train.latest_checkpoint(model_path))
+        
+            new_graph = tf.Graph()
+            with new_graph.as_default():
+            
+            #self.sess = tf.Session(graph=new_graph)
+
+                self.saver = tf.train.import_meta_graph(model_meta_path)
+            #self.saver.restore(self.sess, ckpt.model_checkpoint_path) # tf.train.latest_checkpoint(model_path))
             self.saved_model = True
 
     def train(self, data, labels, validation_data, validation_labels):
         """
         train model
         """
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.Y))
+        learning_rate = 0.0001
+
+        optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
         self.sess.run(tf.global_variables_initializer())
 
-        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.Y))
-        learning_rate = 0.0001
-        optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
         batch_size = 100
         epochs = 100
@@ -148,7 +153,7 @@ class Net(object):
                 batches = len(data) // batch_size
                 for batch in range(batches):
                     idx = idxs[batch * batch_size: (batch + 1) * batch_size]
-                    self.sess.run(self.optimizer, feed_dict={self.X:data[idx], self.Y:labels[idx], self.p_hidden: 0.5})
+                    self.sess.run(optimizer, feed_dict={self.X:data[idx], self.Y:labels[idx], self.p_hidden: 0.5})
 
                 # if epoch % 5 == 0:
                 output = np.array(self.sess.run(self.logits, feed_dict={self.X: validation_data, self.p_hidden: 1.0}))
