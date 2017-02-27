@@ -100,9 +100,6 @@ class Net(object):
 
     def __init__(self, directory, category):
 
-        print "CATEGORY"
-        print category
-
         model_path = directory + '/' + category
         if not os.path.exists(model_path):
             os.makedirs(model_path)
