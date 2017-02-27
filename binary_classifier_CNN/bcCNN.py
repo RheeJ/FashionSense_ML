@@ -125,11 +125,11 @@ class Net(object):
             self.saver = tf.train.import_meta_graph(model_meta_path)
             graph = tf.get_default_graph()
             self.saver.restore(self.sess, ckpt.model_checkpoint_path) # tf.train.latest_checkpoint(model_path))
-            self.logits = graph.get_tensor_by_name('trash/full/biases3:0')
             # for v in tf.all_variables():
             #     if v.name == category + '/full/biases3':
             #        self.logits = v
             #     print v.name
+            self.logits = graph.get_tensor_by_name(category + '/full/biases2:0')
             self.saved_model = True
         else:
             print "Model does not exist"
