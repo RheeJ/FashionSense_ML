@@ -96,13 +96,20 @@ class Net(object):
 
         return (float(correct) / float(length_data)) * 100
 
-    def __init__(self, directory, category):
+    def __open__(self):
+        self.sess = tf.Session()
+        return self.sess
 
+    def __del__(self):
+        self.sess.close()
+
+    def __init__(self, directory, category):
+        '''
+        initialize
+        '''
         model_path = directory + '/' + category
         if not os.path.exists(model_path):
             os.makedirs(model_path)
-
-        self.sess = tf.Session()
 
         self.model_location = model_path + '/' + 'model.ckpt'
         model_meta_path = self.model_location + '.meta'
@@ -124,6 +131,7 @@ class Net(object):
             #self.sess = tf.Session(graph=new_graph)
             self.saver = tf.train.import_meta_graph(model_meta_path)
             graph = tf.get_default_graph()
+            self.sess = __open__(self)
             self.saver.restore(self.sess, ckpt.model_checkpoint_path) # tf.train.latest_checkpoint(model_path))
             # for v in tf.all_variables():
             #     if v.name == category + '/full/biases3':
@@ -131,6 +139,7 @@ class Net(object):
             #     print v.name
             self.logits = graph.get_tensor_by_name(category + '/full/biases2:0')
             self.saved_model = True
+            __del__(self)
         else:
             print "Model does not exist"
             exit()
@@ -143,9 +152,8 @@ class Net(object):
         learning_rate = 0.0001
 
         optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
-
+        self.sess = __open__(self)
         self.sess.run(tf.global_variables_initializer())
-
 
         batch_size = 100
         epochs = 100
@@ -172,6 +180,7 @@ class Net(object):
 
         print "Saving model"
         self.saver.save(self.sess, self.model_location)
+        __del__(self)
 
     def test(self, data, labels):
         """
@@ -180,8 +189,10 @@ class Net(object):
         """
 
         if self.saved_model:
+            self.sess = __open__(self)
             print "Testing..."
             output = self.sess.run(self.logits, feed_dict={self.X:data, self.Y:labels, self.p_hidden: 1.0})
+            __del__(self)
             accuracy = self.compute_accuracy(output, labels)
             print "Accuracy: " + str(accuracy) + '%'
         else:
@@ -196,14 +207,12 @@ class Net(object):
         if self.saved_model:
             img = [utils.load_image(image_path)]
             print "classifying..."
+            self.sess = __open__(self)
             output = np.argmax(self.sess.run(self.logits, feed_dict={self.X: img, self.p_hidden: 1.0})[0])
+            __del__(self)
             return output
         else:
             print "Model does not exist yet...train first"
-
-    def __del__(self):
-        self.sess.close()
-
 
 if __name__ == "__main__":
 
