@@ -11,14 +11,14 @@ def conv_layer(X, category, kernel, strides, number):
     output: the pooling layer
     """
     output_size = kernel[3]
-    # with tf.name_scope('conv' + str(number)) as scope:
-    kernel = tf.Variable(tf.truncated_normal(kernel, dtype=tf.float32,
-                                           stddev=1e-1), name=category + '/conv/weights' + str(number))
-    conv = tf.nn.conv2d(X, kernel, strides, padding='SAME')
-    biases = tf.Variable(tf.constant(0.0, shape=[output_size], dtype=tf.float32),
-                       trainable=True, name=category + '/conv/biases' + str(number))
-    bias = tf.nn.bias_add(conv, biases)
-    conv = tf.nn.relu(bias, name=category + '/conv/relu' + str(number))
+    with tf.variable_scope(category + '/') as scope:
+        kernel = tf.Variable(tf.truncated_normal(kernel, dtype=tf.float32,
+                                               stddev=1e-1), name='conv/weights' + str(number))
+        conv = tf.nn.conv2d(X, kernel, strides, padding='SAME')
+        biases = tf.Variable(tf.constant(0.0, shape=[output_size], dtype=tf.float32),
+                           trainable=True, name='conv/biases' + str(number))
+        bias = tf.nn.bias_add(conv, biases)
+        conv = tf.nn.relu(bias, 'conv/relu' + str(number))
 
     return conv
 
@@ -29,11 +29,12 @@ def pool_layer(X, category, ksize, kstrides, number):
     output: pooling tensor
     """
 
-    pool = tf.nn.max_pool(X,
-                          ksize=ksize,
-                          strides=kstrides,
-                          padding='SAME',
-                          name=category + '/pool' + str(number))
+    with tf.variable_scope(category + '/') as scope:
+        pool = tf.nn.max_pool(X,
+                              ksize=ksize,
+                              strides=kstrides,
+                              padding='SAME',
+                              name='pool' + str(number))
 
     return pool
 
@@ -45,9 +46,10 @@ def full_layer(X, category, input_size, output_size, number):
     """
 
     # with tf.name_scope('full' + str(number)) as scope:
-    W = tf.Variable(tf.random_normal([input_size, output_size]), name=category + '/full/weights' + str(number))
-    b = tf.Variable(tf.constant([output_size], dtype=tf.float32), name=category + '/full/biases' + str(number))
-    full = tf.matmul(X, W) + b
+    with tf.variable_scope(category + '/') as scope:
+        W = tf.Variable(tf.random_normal([input_size, output_size]), 'full/weights' + str(number))
+        b = tf.Variable(tf.constant([output_size], dtype=tf.float32), 'full/biases' + str(number))
+        full = tf.matmul(X, W) + b
 
     return full
 
@@ -96,91 +98,78 @@ class Net(object):
 
         return (float(correct) / float(length_data)) * 100
 
-    def __open__(self):
-        self.sess = tf.Session()
-        return self.sess
-
-    def __del__(self):
-        self.sess.close()
-
     def __init__(self, directory, category):
-        '''
-        initialize
-        '''
+
+        print "CATEGORY"
+        print category
+
         model_path = directory + '/' + category
         if not os.path.exists(model_path):
             os.makedirs(model_path)
 
-        self.model_location = model_path + '/' + 'model.ckpt'
-        model_meta_path = self.model_location + '.meta'
+        self.category_graph = tf.Graph()
 
-        ckpt = tf.train.get_checkpoint_state(model_path)
+        with self.category_graph.as_default():
 
-        self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
-        self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
-        self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
+            self.sess = tf.Session(graph=self.category_graph)
 
-        self.saved_model = False
-        self.logits = None
-        if not(os.path.isfile(model_meta_path)):
+            self.model_location = model_path + '/' + 'model.ckpt'
+            model_meta_path = self.model_location + '.meta'
+
+            self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
+            self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
+            self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
             self.logits = model(self.X, category, self.p_hidden)
             self.saver = tf.train.Saver()
-        elif ckpt:
-            # new_graph = tf.Graph()
-            # with new_graph.as_default():
-            #self.sess = tf.Session(graph=new_graph)
-            self.saver = tf.train.import_meta_graph(model_meta_path)
-            graph = tf.get_default_graph()
-            self.sess = __open__(self)
-            self.saver.restore(self.sess, ckpt.model_checkpoint_path) # tf.train.latest_checkpoint(model_path))
-            # for v in tf.all_variables():
-            #     if v.name == category + '/full/biases3':
-            #        self.logits = v
-            #     print v.name
-            self.logits = graph.get_tensor_by_name(category + '/full/biases2:0')
-            self.saved_model = True
-            __del__(self)
-        else:
-            print "Model does not exist"
-            exit()
+
+            self.saved_model = False
+            ckpt = tf.train.get_checkpoint_state(model_path)
+            if ckpt:
+                self.saver = tf.train.import_meta_graph(model_meta_path)
+                self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+
+                self.saved_model = True
 
     def train(self, data, labels, validation_data, validation_labels):
         """
         train model
         """
-        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.Y))
-        learning_rate = 0.0001
 
-        optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
-        self.sess = __open__(self)
-        self.sess.run(tf.global_variables_initializer())
+        with self.category_graph.as_default():
 
-        batch_size = 100
-        epochs = 100
-        print "Accuracy: "
+            cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.Y))
+            learning_rate = 0.0001
 
-        try:
-            for epoch in range(epochs):
-                idxs = np.random.permutation(len(data))
-                batches = len(data) // batch_size
-                for batch in range(batches):
-                    idx = idxs[batch * batch_size: (batch + 1) * batch_size]
-                    self.sess.run(optimizer, feed_dict={self.X:data[idx], self.Y:labels[idx], self.p_hidden: 0.5})
+            optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
-                # if epoch % 5 == 0:
-                output = np.array(self.sess.run(self.logits, feed_dict={self.X: validation_data, self.p_hidden: 1.0}))
-                accuracy = self.compute_accuracy(output, validation_labels)
-                print "epoch "+ str(epoch) + ": " + str(accuracy) + '%'
+            self.sess.run(tf.global_variables_initializer())
 
-        except KeyboardInterrupt:
-            print "Saving model before exiting"
+
+            batch_size = 100
+            epochs = 100
+            print "Accuracy: "
+
+            try:
+                for epoch in range(epochs):
+                    idxs = np.random.permutation(len(data))
+                    batches = len(data) // batch_size
+                    for batch in range(batches):
+                        idx = idxs[batch * batch_size: (batch + 1) * batch_size]
+                        self.sess.run(optimizer, feed_dict={self.X:data[idx], self.Y:labels[idx], self.p_hidden: 0.5})
+
+                    # if epoch % 5 == 0:
+                    output = np.array(self.sess.run(self.logits, feed_dict={self.X: validation_data, self.p_hidden: 1.0}))
+                    accuracy = self.compute_accuracy(output, validation_labels)
+                    print "epoch "+ str(epoch) + ": " + str(accuracy) + '%'
+
+            except KeyboardInterrupt:
+                print "Saving model before exiting"
+                self.saver.save(self.sess, self.model_location)
+                self.saved_model = True
+                exit()
+
+            print "Saving model"
             self.saver.save(self.sess, self.model_location)
-            self.saved_model = True
-            exit()
-
-        print "Saving model"
-        self.saver.save(self.sess, self.model_location)
-        __del__(self)
 
     def test(self, data, labels):
         """
@@ -188,15 +177,15 @@ class Net(object):
         prints out the accuracy on the test data
         """
 
-        if self.saved_model:
-            self.sess = __open__(self)
-            print "Testing..."
-            output = self.sess.run(self.logits, feed_dict={self.X:data, self.Y:labels, self.p_hidden: 1.0})
-            __del__(self)
-            accuracy = self.compute_accuracy(output, labels)
-            print "Accuracy: " + str(accuracy) + '%'
-        else:
-            print "Model does not exist yet...train first"
+        with self.category_graph.as_default():
+
+            if self.saved_model:
+                print "Testing..."
+                output = self.sess.run(self.logits, feed_dict={self.X:data, self.Y:labels, self.p_hidden: 1.0})
+                accuracy = self.compute_accuracy(output, labels)
+                print "Accuracy: " + str(accuracy) + '%'
+            else:
+                print "Model does not exist yet...train first"
 
     def classify(self, image_path):
         """
@@ -204,15 +193,22 @@ class Net(object):
         output: the classification of that image
         """
 
-        if self.saved_model:
-            img = [utils.load_image(image_path)]
-            print "classifying..."
-            self.sess = __open__(self)
-            output = np.argmax(self.sess.run(self.logits, feed_dict={self.X: img, self.p_hidden: 1.0})[0])
-            __del__(self)
-            return output
-        else:
-            print "Model does not exist yet...train first"
+        with self.category_graph.as_default():
+
+            if self.saved_model:
+                img = [utils.load_image(image_path)]
+                print "classifying..."
+                output = np.argmax(self.sess.run(self.logits, feed_dict={self.X: img, self.p_hidden: 1.0})[0])
+                return output
+            else:
+                print "Model does not exist yet...train first"
+
+    def __del__(self):
+
+        with self.category_graph.as_default():
+
+            self.sess.close()
+
 
 if __name__ == "__main__":
 
