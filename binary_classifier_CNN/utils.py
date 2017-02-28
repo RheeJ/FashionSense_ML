@@ -29,13 +29,11 @@ def load_image(image_path):
     """
 
     dims=64
-    print image_path
     try:
         img = imresize(Image.open(image_path), (dims, dims))
+        return img
     except:
         print "Could not open image"
-
-    return img
 
 
 def load_images(path, label):
