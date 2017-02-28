@@ -7,6 +7,7 @@ from scipy.misc import imresize, imread
 #from sklearn.model_selection import train_test_split
 from sklearn.cross_validation import train_test_split
 
+
 def _preprocess(imgs):
     """
     input: takes in numpy array representing images
@@ -29,9 +30,13 @@ def load_image(image_path):
 
     dims=64
     print image_path
-    img = imresize(Image.open(image_path), (dims, dims))
+    try:
+        img = imresize(Image.open(image_path), (dims, dims))
+    except:
+        print "Could not open image"
 
     return img
+
 
 def load_images(path, label):
     """
