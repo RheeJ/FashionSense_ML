@@ -17,8 +17,8 @@ def get_classifications_wrapper(temp_file):
 # webapp
 app = Flask(__name__)
 
-@app.route('/', methods=['POST'])
-def index():
+@app.route('/classify', methods=['POST'])
+def classify():
 
     # write binary data to temp file
     data = request.get_data()
@@ -37,6 +37,19 @@ def index():
 
     result = json.dumps(classifications_dict)
     return result
+
+# TODO: implement endpoint that returns images
+# with specific classification
+@app.route('/classification', methods=['GET']):
+
+
+    return
+
+# TODO: implement endpoint which returns
+# similar images to one posted
+# @app.route('/image', methods=['POST']):
+#     pass
+
 
 if __name__ == "__main__":
 
