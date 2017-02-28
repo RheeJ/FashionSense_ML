@@ -3,6 +3,7 @@ import tempfile
 from flask import request
 from flask import Flask
 from flask import abort
+from flask import send_file
 import sys, os
 from binary_classifier_CNN import bcCNN
 from utils import get_classifications
@@ -38,16 +39,26 @@ def classify():
     result = json.dumps(classifications_dict)
     return result
 
+
 # TODO: implement endpoint that returns images
 # with specific classification
-@app.route('/classification', methods=['GET']):
+@app.route('/classified', methods=['GET'])
+def classified():
 
+    classification = request.args.get('classification')
+    if classification == None:
+        abort(400)
 
-    return
+    # TODO: somehow code in the logic to retrieve image from databes
+    file_name = "./test.jpg"
+
+    return send_file(file_name, mimetype='image/jpeg')
+
 
 # TODO: implement endpoint which returns
 # similar images to one posted
-# @app.route('/image', methods=['POST']):
+# @app.route('/image', methods=['POST'])
+# def images():
 #     pass
 
 
