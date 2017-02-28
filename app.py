@@ -50,6 +50,7 @@ def classified():
         abort(400)
 
     # TODO: somehow code in the logic to retrieve image from databes
+    # hard code in a test image for now
     file_name = "./test.jpg"
 
     return send_file(file_name, mimetype='image/jpeg')
