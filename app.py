@@ -11,6 +11,17 @@ from utils import get_classifiers
 import sqlite3
 
 
+# get trained models
+classifers = get_classifiers()
+
+def get_classifications_wrapper(temp_file):
+    return get_classifications(classifers, temp_file)
+
+
+# webapp
+app = Flask(__name__)
+
+
 DATABASE = './database/database.db'
 
 def get_db():
@@ -25,16 +36,6 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
-
-# get trained models
-classifers = get_classifiers()
-
-def get_classifications_wrapper(temp_file):
-    return get_classifications(classifers, temp_file)
-
-
-# webapp
-app = Flask(__name__)
 
 @app.route('/classify', methods=['POST'])
 def classify():

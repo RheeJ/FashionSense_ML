@@ -17,23 +17,22 @@ table_description = table_description[:-1]
 table_description += ')'
 
 # create the table
-c.execute(table_description)
+try:
+    c.execute(table_description)
+except:
+    print "Database probably alread exists"
+    exit()
 
-# TODO: run bcCNN on all images and get the classifications
-"""
-I would probably just create a default image directory (i.e. ./images)
-that contains all the images and then run the get_classifiers and get_classifications functions
-(inside utils) to get all the classifications. Then you will be able to use that to insert into the database
-using the command below
-"""
 classifiers = utils.get_classifiers()
-for image_path in list(os.walk("./images"))[1:]:
-
-    insert_string = "INSERT INTO images VALUES ( " + image_path + ','
-    classifications = get_classifications(classifiers, image_path)
+images_dir = "./images"
+for image in list(os.walk(images_dir))[0][2]:
+    image_path = images_dir + '/' + image
+    insert_string = "INSERT INTO images VALUES ( '" + image_path + "',"
+    classifications = utils.get_classifications(classifiers, image_path)
     for cat in categories:
-        insert_string += (' ' + cat  + ',')
-        c.execute(insert_string)
+        insert_string += (' ' + str(classifications[cat])  + ',')
+
+    insert_string = insert_string[:-1]
     insert_string += ' )'
     c.execute(insert_string)
 
