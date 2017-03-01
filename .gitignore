@@ -4,4 +4,5 @@
 .coverage
 classifiers/
 images/
+training_images/
 *.db
