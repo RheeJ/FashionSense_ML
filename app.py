@@ -8,12 +8,30 @@ import sys, os
 from binary_classifier_CNN import bcCNN
 from utils import get_classifications
 from utils import get_classifiers
+import sqlite3
+
+
+DATABASE = './database/database.db'
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+    return db
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
 
 # get trained models
 classifers = get_classifiers()
 
 def get_classifications_wrapper(temp_file):
     return get_classifications(classifers, temp_file)
+
 
 # webapp
 app = Flask(__name__)
@@ -49,8 +67,9 @@ def classified():
     if classification == None:
         abort(400)
 
-    # TODO: somehow code in the logic to retrieve image from databes
-    # hard code in a test image for now
+    # TODO: have a query that returns the first image that has classificotion
+
+    # dumby value
     file_name = "./test.jpg"
 
     return send_file(file_name, mimetype='image/jpeg')
