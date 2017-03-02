@@ -99,7 +99,7 @@ def classified():
     query = "select image_path from images where "
     for arg in args:
         if arg == "num_images":
-            num_images = args.get(arg)
+            num_images = int(args.get(arg))
         else:
             query += (arg + '=' + args.get(arg))
             num_classifications += 1
@@ -119,8 +119,10 @@ def classified():
         for ip in image_paths:
             if num_classifications == 0:
                 break
+            if num_images == 0:
+                break
             zipf.write(ip[0])
-            num_classifications -= 1
+            num_images -= 1
 
     return send_file(temp_images_zip, mimetype="application/zip")
 
