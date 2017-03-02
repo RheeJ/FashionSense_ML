@@ -3,6 +3,12 @@ import os
 import utils
 
 
+# TODO: add this to the Dockerfile to run on startup
+
+# TODO: automatically generate classifiers, images and database directories
+
+# TODO: populate the classifiers and images directories
+
 conn = sqlite3.connect('database/database.db')
 c = conn.cursor()
 
