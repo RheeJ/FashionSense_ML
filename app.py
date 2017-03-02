@@ -10,6 +10,7 @@ from utils import get_classifications
 from utils import get_classifiers
 import sqlite3
 from flask import g
+import zipfile
 
 
 # get trained models
@@ -40,6 +41,9 @@ def close_connection(exception):
 
 @app.route('/classify', methods=['POST'])
 def classify():
+    """
+    classifies image against all the loaded classifiers
+    """
 
     # write binary data to temp file
     data = request.get_data()
@@ -62,6 +66,9 @@ def classify():
 
 @app.route('/classifications', methods=['GET'])
 def classifications():
+    """
+    returns all classifications that the endpoint serves
+    """
 
     categories = []
     # TODO: pull out classifications iteration into utils
@@ -74,23 +81,44 @@ def classifications():
     return result
 
 
-# TODO: implement endpoint that returns images
-# with specific classification
 @app.route('/classified', methods=['GET'])
 def classified():
+    """
+    grabs the spefified images with the specified classifications
+    """
+    # TODO: UNIT TEST THIS SHIT
 
-    classification = request.args.get('classification')
-    if classification == None:
-        abort(400)
+    # if no classifications specified return nothing
+    args = request.args
+    if len(args) == 0:
+        return json.dumps({})
 
-    db = c = conn.cursor()
+    # go through the ars and check for num_images and classifications
+    num_images = 1
+    num_classifications = 0
+    query = "select image_path from images where "
+    for arg in args:
+        if arg == "num_images":
+            num_images = args.get(arg)
+        else:
+            query += (arg + '=' + args.get(arg))
+            num_classifications += 1
 
-    # go through and select all images that have
+    if num_classifications == 0:
+        return json.dumps({})
 
-    # dumby value
-    file_name = "./test.jpg"
+    db = get_db()
+    c = db.cursor()
+    image_paths = c.execute(query)
+    temp_images_zip = "/tmp/images.zip"
+    with zipfile.ZipFile(temp_images_zip, 'w') as zipf:
+        for ip in image_paths:
+            if num_classifications == 0:
+                break
+            zipf.write(ip[0])
+            num_classifications -= 1
 
-    return send_file(file_name, mimetype='image/jpeg')
+    return send_file(temp_images_zip, mimetype="application/zip")
 
 
 # TODO: implement endpoint which returns
