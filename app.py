@@ -109,7 +109,11 @@ def classified():
 
     db = get_db()
     c = db.cursor()
-    image_paths = c.execute(query)
+    try:
+        image_paths = c.execute(query)
+    except:
+        print "Improper select query"
+        print query
     temp_images_zip = "/tmp/images.zip"
     with zipfile.ZipFile(temp_images_zip, 'w') as zipf:
         for ip in image_paths:
