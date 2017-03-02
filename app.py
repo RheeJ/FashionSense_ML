@@ -9,6 +9,7 @@ from binary_classifier_CNN import bcCNN
 from utils import get_classifications
 from utils import get_classifiers
 import sqlite3
+from flask import g
 
 
 # get trained models
@@ -59,6 +60,20 @@ def classify():
     return result
 
 
+@app.route('/classifications', methods=['GET'])
+def classifications():
+
+    categories = []
+    # TODO: pull out classifications iteration into utils
+    for path in list(os.walk("./classifiers"))[1:]:
+        model_path = path[0]
+        category = model_path.split('/')[2]
+        categories.append(category)
+
+    result = json.dumps({ "categories" : categories})
+    return result
+
+
 # TODO: implement endpoint that returns images
 # with specific classification
 @app.route('/classified', methods=['GET'])
@@ -68,7 +83,9 @@ def classified():
     if classification == None:
         abort(400)
 
-    # TODO: have a query that returns the first image that has classificotion
+    db = c = conn.cursor()
+
+    # go through and select all images that have
 
     # dumby value
     file_name = "./test.jpg"

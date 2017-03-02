@@ -5,4 +5,5 @@
 classifiers/
 images/
 training_images/
+database/
 *.db
