@@ -7,4 +7,5 @@ scipy
 Pillow
 sklearn
 flask
+flask-restful
 sqlite3
