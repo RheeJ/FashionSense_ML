@@ -8,3 +8,4 @@ Pillow
 sklearn
 flask
 sqlite3
+awscli
