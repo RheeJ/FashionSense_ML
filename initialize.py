@@ -1,13 +1,9 @@
 import sqlite3
 import os
 import utils
+import boto3
+import shutil
 
-
-# TODO: add this to the Dockerfile to run on startup
-
-# TODO: automatically generate classifiers, images and database directories
-
-# TODO: populate the classifiers and images directories
 
 conn = sqlite3.connect('database/database.db')
 c = conn.cursor()
@@ -30,11 +26,45 @@ except:
     exit()
 
 classifiers = utils.get_classifiers()
-images_dir = "./images"
-for image in list(os.walk(images_dir))[0][2]:
-    image_path = images_dir + '/' + image
-    insert_string = "INSERT INTO images VALUES ( '" + image_path + "',"
-    classifications = utils.get_classifications(classifiers, image_path)
+
+# Shortening the s3 command, nothing special
+s3 = boto3.resource('s3')
+client = boto3.client('s3')
+# Pull images from AWS bucket
+if not(os.path.isdir("./images")):
+    os.makedirs("./images")
+bucket = s3.Bucket("imagedataset")
+#folders = bucket.list("","/")
+#names = []
+#for i in range(len(folders)):
+#    names[i] = folders[i].name
+folders = []
+paginator = client.get_paginator('list_objects')
+for result in paginator.paginate(Bucket="imagedataset", Delimiter='/'):
+    for prefix in result.get('CommonPrefixes'):
+        folders.append((prefix.get('Prefix')))
+
+print folders
+for folder in folders:
+    try:
+        s3.Object(bucket.name, target).get()
+    except ClientError:
+        print "Target "+target+" not found"
+        os._exit(3)
+    for Object in bucket.objects.all():
+        # Can be changed to just positive images that we want to categorize
+        s3.meta.client.download_file(bucket.name, Object, "./images")
+
+'''
+for image_path in list(os.walk("./images"))[1:]:
+
+    insert_string = "INSERT INTO images VALUES ( " + image_path + ','
+    classifications = get_classifications(classifiers, image_path)
+#images_dir = "./images"
+#for image in list(os.walk(images_dir))[0][2]:
+#    image_path = images_dir + '/' + image
+#   insert_string = "INSERT INTO images VALUES ( '" + image_path + "',"
+#    classifications = utils.get_classifications(classifiers, image_path)
     for cat in categories:
         insert_string += (' ' + str(classifications[cat])  + ',')
 
@@ -42,5 +72,8 @@ for image in list(os.walk(images_dir))[0][2]:
     insert_string += ' )'
     c.execute(insert_string)
 
+shutil.rmtree("./images")
+
 conn.commit()
 conn.close()
+'''
