@@ -77,7 +77,7 @@ def model(X, category, p_hidden):
 
     model = full_layer(full1, category, 4096, 2, 2)
 
-    return model
+    return model, conv1, conv2, conv3
 
 
 class Net(object):
@@ -116,7 +116,7 @@ class Net(object):
             self.X = tf.placeholder(tf.float32, shape=[None, 64, 64, 3], name='X')
             self.Y = tf.placeholder(tf.float32, shape=[None, 2], name='Y')
             self.p_hidden = tf.placeholder(tf.float32, name='p_hidden')
-            self.logits = model(self.X, category, self.p_hidden)
+            self.logits, self.c1, self.c2, self.c3 = model(self.X, category, self.p_hidden)
             self.saver = tf.train.Saver()
 
             self.saved_model = False
@@ -196,6 +196,9 @@ class Net(object):
                 img = [utils.load_image(image_path)]
                 print "classifying..."
                 output = np.argmax(self.sess.run(self.logits, feed_dict={self.X: img, self.p_hidden: 1.0})[0]).item()
+		conv = self.sess.run([self.c1, self.c2, self.c3], feed_dict={self.X: img, self.p_hidden: 1.0})
+                for idx,layer in enumerate(conv):
+                    np.save('layer'+str(idx)+'.npy', layer)
                 return output
             else:
                 print "Model does not exist yet...train first"
@@ -218,6 +221,7 @@ if __name__ == "__main__":
         exit()
 
     if len(args) == 2:
+	net = Net('.', 'formal')
         if args[0] == "-classify":
             path = args[1]
             print "classification: " + str(net.classify(path))
