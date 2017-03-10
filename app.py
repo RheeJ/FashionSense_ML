@@ -38,6 +38,25 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
+@app.route('/analyze' , methods=['GET'])
+def analyze():
+    frequencies = {}
+    #Iterate through all images in user folder
+    for path in list(os.walk("./user_images"))[0][2]:
+        image_path = './user_images/' + path
+        print image_path
+	classifications_dict = get_classifications_wrapper(image_path)
+	print classifications_dict
+        for key in classifications_dict.keys():
+            try:
+                if classifications_dict[key] == 1:
+                    frequencies[key] += 1
+            except:
+                if classifications_dict[key] == 1:
+                    frequencies[key] = 1
+                else:
+                    frequencies[key] = 0
+    return json.dumps(frequencies)
 
 @app.route('/classify', methods=['POST'])
 def classify():
