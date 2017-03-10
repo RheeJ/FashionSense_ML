@@ -69,12 +69,12 @@ def classify():
     if data == None:
         abort(400)
 
-    temp = tempfile.TemporaryFile()
+    temp = tempfile.NamedTemporaryFile()
     temp.write(data)
     temp.seek(0)
 
     # get the classifications from net
-    classifications_dict = get_classifications_wrapper(temp)
+    classifications_dict = get_classifications_wrapper(temp.name)
 
     # close temp file
     temp.close()

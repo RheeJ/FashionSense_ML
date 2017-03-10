@@ -194,6 +194,9 @@ class Net(object):
 
             if self.saved_model:
                 img = [utils.load_image(image_path)]
+                print image_path
+                print "IMAGE"
+                print img
                 print "classifying..."
                 output = np.argmax(self.sess.run(self.logits, feed_dict={self.X: img, self.p_hidden: 1.0})[0]).item()
 		conv = self.sess.run([self.c1, self.c2, self.c3], feed_dict={self.X: img, self.p_hidden: 1.0})

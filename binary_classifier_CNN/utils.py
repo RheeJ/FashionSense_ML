@@ -33,7 +33,7 @@ def load_image(image_path):
         img = imresize(Image.open(image_path), (dims, dims))
         return img
     except:
-        print "Could not open image"
+        print "Could not open image (does not exist)"
 
 
 def load_images(path, label):
