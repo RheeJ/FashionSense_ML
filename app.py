@@ -14,6 +14,7 @@ import zipfile
 import cStringIO
 from PIL import Image
 import base64
+from base64 import decodestring
 
 
 # get trained models
@@ -71,9 +72,10 @@ def classify():
     if data == None:
         abort(400)
 
-    transfer_encoding = request.headers["Content-Type"]
+    transfer_encoding = request.headers["Content-Transfer-Encoding"]
+    print transfer_encoding
     if transfer_encoding == "base64":
-        data = cStringIO.StringIO(base64.b64decode(data))
+        data = base64.decodestring(data)
 
     content_type = request.headers["Content-Type"]
     if content_type == None:
