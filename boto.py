@@ -4,6 +4,9 @@ from os import listdir
 from os.path import isfile, join
 from botocore.client import ClientError
 
+# Shortening the s3 command, nothing special
+s3 = boto3.resource('s3')
+client = boto3.client('s3')
 
 def usage_message():
     print "This script communicates with aws buckets!"
@@ -22,34 +25,6 @@ def down_usage_message():
     if prompt == "y":
         print "Example: 'python boto.py -down imagedataset/beach/0.jpg imagedataset images/0.jpg' will save the first image in the beach folder from the imagedataset bucket to a file called 0.jpg in the directory images within your current working directory"
     exit()
-
-# Get inputs
-args = sys.argv[1:]
-method = args[0]
-if method == "-down":
-    if len(args) != 4:
-        down_usage_message()
-    else:
-        pathname = args[1]
-        bucket = args[2]
-        dest = args[3]
-elif method == "-up":
-    if len(args) < 3:
-        down_usage_message()
-    elif len(args) == 4:
-        pathname = args[1]
-        bucket = args[2]
-        sub_bucket = args[3]
-    else:
-        pathname = args[1]
-        bucket = args[2]
-        sub_bucket = False
-else:
-    usage_message()
-
-# Shortening the s3 command, nothing special
-s3 = boto3.resource('s3')
-client = boto3.client('s3')
 
 # Uploading function
 def upload(pathname, bucket, sub_bucket):
@@ -95,7 +70,7 @@ def upload(pathname, bucket, sub_bucket):
         s3.Bucket(bucket.name).put_object(Key=name, Body=data)
     print "Uploading complete!"
 
-# Downloading function
+# CLI Downloading function
 def download(bucket, filename, dest):
     # Confirm file or directory path exists/check if directory
     tmp = dest.split("/")
@@ -137,13 +112,75 @@ def download(bucket, filename, dest):
     s3.meta.client.download_file(bucket.name, target, dest)
     print "File download complete!"
 
+# pipeline downloading function
+def download_in(bucket, foldername):
+    # Confirm dest directory exists
+    dest = "images/"+foldername
+    if not(os.path.isdir(dest)):
+        os.makedirs(dest)
+    # Confirm bucket exists
+    bucket = s3.Bucket(bucket)
+    exists = True
+    try:
+        s3.meta.client.head_bucket(Bucket=bucket.name)
+    except ClientError:
+        # The bucket does not exist or you have no access.
+        print "Bucket not found"
+        os._exit(0)
+    prefix = foldername+"/"
+    items = []
+    for obj in bucket.objects.filter(Prefix=prefix):
+        items.append(obj)
+        target = obj.key
+        try:
+            s3.Object(bucket.name, target).get()
+        except ClientError:
+            print "Target "+target+" not found"
+            # The target is unidentified
+            os._exit(1)
+        s3.meta.client.download_file(bucket.name, target, "images/"+target)
+    print "File download complete!"
+
+if __name__ == "__main__":
+
+# Get inputs
+    args = sys.argv[1:]
+    method = args[0]
+    if method == "-down":
+        if len(args) != 4:
+            down_usage_message()
+        else:
+            pathname = args[1]
+            bucket = args[2]
+            dest = args[3]
+    elif method == "-up":
+        if len(args) < 3:
+            down_usage_message()
+        elif len(args) == 4:
+            pathname = args[1]
+            bucket = args[2]
+            sub_bucket = args[3]
+        else:
+            pathname = args[1]
+            bucket = args[2]
+            sub_bucket = False
+    elif method == "-down_in":
+        if len(args) == 3:
+            bucket = args[1]
+            folder = args[2]
+    else:
+        usage_message()
+
 # Choosing which to run
-if method == "-down":
-    print "Downloading beginning"
-    download(bucket, pathname, dest)
-elif method == "-up":
-    print "Uploading beginning"
-    upload(pathname, bucket, sub_bucket)
-else:
-    print "No correct method found, exiting program"
-    exit()
+    if method == "-down":
+        print "Downloading beginning"
+        download(bucket, pathname, dest)
+    elif method == "-up":
+        print "Uploading beginning"
+        upload(pathname, bucket, sub_bucket)
+    elif method == "-down_in":
+        print "Downloading beginning"
+        download_in(bucket, folder)
+    else:
+        print "No correct method found, exiting program"
+        exit()
