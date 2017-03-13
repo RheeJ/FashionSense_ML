@@ -69,6 +69,18 @@ def classify():
     if data == None:
         abort(400)
 
+    #print request.files
+
+    content_type = request.headers["Content-Type"]
+    if content_type == None:
+        abort(400)
+    if content_type != "image/jpeg":
+	abort(400)
+    # print "DATA DATA DATA:"
+    # print data
+    print content_type
+
+
     temp = tempfile.NamedTemporaryFile()
     temp.write(data)
     temp.seek(0)
