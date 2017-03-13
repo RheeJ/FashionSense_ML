@@ -50,7 +50,6 @@ def download(bucket, foldername, polarity):
         s3.meta.client.download_file(bucket.name, target, dest+"/"+name+"1")
         print_progress(index,size)
         index = index+1
-    os.remove(dest+"/"+"1")
     print foldername + " folder download complete!"
 
 if __name__ == "__main__":

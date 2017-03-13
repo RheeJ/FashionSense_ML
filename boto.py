@@ -130,15 +130,19 @@ def download_in(bucket, foldername):
     prefix = foldername+"/"
     items = []
     for obj in bucket.objects.filter(Prefix=prefix):
-        items.append(obj)
-        target = obj.key
+        items.append(str(obj))
+	print obj
+        target = str(obj.key)
+	print target
+	print str(obj.key)
         try:
             s3.Object(bucket.name, target).get()
         except ClientError:
             print "Target "+target+" not found"
             # The target is unidentified
             os._exit(1)
-        s3.meta.client.download_file(bucket.name, target, "images/"+target)
+        print "images/"+target
+	s3.meta.client.download_file(bucket.name, target, "images/"+str(target)+"_")
     print "File download complete!"
 
 if __name__ == "__main__":
