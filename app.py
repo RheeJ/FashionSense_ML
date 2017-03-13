@@ -69,6 +69,7 @@ def classify():
     # write binary data to temp file
     data = request.get_data()
     if data == None:
+        print "No data"
         abort(400)
 
     transfer_encoding = request.headers["Content-Type"]
@@ -80,10 +81,6 @@ def classify():
         abort(400)
     if content_type != "image/jpeg":
 	    abort(400)
-
-    # print "DATA DATA DATA:"
-    # print data
-    print content_type
 
 
     temp = tempfile.NamedTemporaryFile()
