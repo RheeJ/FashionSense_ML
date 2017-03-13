@@ -11,6 +11,9 @@ from utils import get_classifiers
 import sqlite3
 from flask import g
 import zipfile
+import cStringIO
+from PIL import Image
+import base64
 
 
 # get trained models
@@ -22,7 +25,6 @@ def get_classifications_wrapper(temp_file):
 
 # webapp
 app = Flask(__name__)
-
 
 DATABASE = './database/database.db'
 
@@ -69,13 +71,16 @@ def classify():
     if data == None:
         abort(400)
 
-    #print request.files
+    transfer_encoding = request.headers["Content-Type"]
+    if transfer_encoding == "base64":
+        data = cStringIO.StringIO(base64.b64decode(data))
 
     content_type = request.headers["Content-Type"]
     if content_type == None:
         abort(400)
     if content_type != "image/jpeg":
-	abort(400)
+	    abort(400)
+
     # print "DATA DATA DATA:"
     # print data
     print content_type
