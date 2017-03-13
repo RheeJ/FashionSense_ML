@@ -1,5 +1,19 @@
+# coding: utf-8
 import sys, os
 import boto3
+
+# Print iterations progress
+def print_progress(iteration, total, prefix='', suffix='', decimals=1, bar_length=100):
+    str_format = "{0:." + str(decimals) + "f}"
+    percents = str_format.format(100 * (iteration / float(total)))
+    filled_length = int(float(bar_length * (iteration / float(total))))
+    bar = '█' * filled_length + '-' * (bar_length - filled_length)
+
+    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
+
+    if iteration == total:
+        sys.stdout.write('\n')
+    sys.stdout.flush()
 
 def download(bucket, foldername, polarity):
     # Confirm dest directory exists
@@ -16,9 +30,13 @@ def download(bucket, foldername, polarity):
         print "Bucket not found"
         os._exit(0)
     prefix = foldername+"/"
-    items = []
-    for obj in bucket.objects.filter(Prefix=prefix):
-        items.append(obj)
+    items = bucket.objects.filter(Prefix=prefix)
+    size = sum(1 for _ in items)
+    index = 1
+    for obj in items:
+    #items = []
+    #for obj in bucket.objects.filter(Prefix=prefix):
+    #    items.append(obj)
         target = obj.key
         try:
             s3.Object(bucket.name, target).get()
@@ -29,7 +47,10 @@ def download(bucket, foldername, polarity):
         name = target.split("/")
         type(name)
         name = name[len(name)-1]
-        s3.meta.client.download_file(bucket.name, target, dest+"/"+name)
+        s3.meta.client.download_file(bucket.name, target, dest+"/"+name+"1")
+        print_progress(index,size)
+        index = index+1
+    os.remove(dest+"/"+"1")
     print foldername + " folder download complete!"
 
 if __name__ == "__main__":
@@ -40,7 +61,9 @@ if __name__ == "__main__":
     paginator = client.get_paginator('list_objects')
     for result in paginator.paginate(Bucket='imagedataset', Delimiter='/'):
         for prefix in result.get('CommonPrefixes'):
-            negatives.append(prefix.get('Prefix'))
+            tmp = prefix.get('Prefix')
+            if tmp != positives+"/":
+                negatives.append(prefix.get('Prefix')[:-1])
 
     download("imagedataset", positives, "positive")
     for folder in negatives:
