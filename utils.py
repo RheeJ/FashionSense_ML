@@ -1,6 +1,33 @@
 import sys, os
 from binary_classifier_CNN import bcCNN
+import base64
+import tempfile
+from PIL import Image
 
+def decode_base64(data):
+    """
+    decodes a json object that contains the base64 image data as follows
+    { "image":"base64data" }
+    """
+
+    image = None
+    try:
+        image = base64.decodestring(data)
+    except:
+        print "Could not decode base64 image from json"
+
+    return image
+
+def create_temporary_image(image):
+    """
+    creates a temporary file object used to store images and returns it
+    """
+
+    temp = tempfile.NamedTemporaryFile()
+    temp.write(image)
+    temp.seek(0)
+
+    return temp
 
 def get_classifiers(directory="./classifiers"):
     """
