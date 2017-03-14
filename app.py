@@ -46,7 +46,7 @@ def abort_none(returned):
 class Classifications(Resource):
 
     def __init__(self):
-        # self.classifers = get_classifiers()
+        self.classifiers = get_classifiers()
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('image', type=str, required=True)
 
@@ -73,7 +73,6 @@ class Classifications(Resource):
 # add our endpoints here (just one for now)
 base_endpoint = "/api/v1"
 endpoint = '/'.join((base_endpoint, "classifications"))
-print endpoint
 api.add_resource(Classifications, endpoint)
 
 
