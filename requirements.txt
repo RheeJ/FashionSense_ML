@@ -7,9 +7,7 @@ scipy
 Pillow
 sklearn
 flask
-<<<<<<< HEAD
 flask-restful
-=======
 sqlite3
 awscli
->>>>>>> 72bf297f569e41a28f492f06584622316574c1a5
+
