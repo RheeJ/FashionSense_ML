@@ -14,6 +14,16 @@ import sys, os
 from binary_classifier_CNN import bcCNN
 from utils import get_classifications
 from utils import get_classifiers
+<<<<<<< HEAD
+=======
+import sqlite3
+from flask import g
+import zipfile
+import cStringIO
+from PIL import Image
+import base64
+
+>>>>>>> 72bf297f569e41a28f492f06584622316574c1a5
 
 import sqlite3
 
@@ -23,7 +33,6 @@ import utils
 
 app = Flask(__name__)
 api = Api(app)
-
 
 DATABASE = './database/database.db'
 
@@ -39,9 +48,31 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
+<<<<<<< HEAD
 def abort_none(returned):
     if returned == None:
         abort(400)
+=======
+@app.route('/analyze' , methods=['GET'])
+def analyze():
+    frequencies = {}
+    #Iterate through all images in user folder
+    for path in list(os.walk("./user_images"))[0][2]:
+        image_path = './user_images/' + path
+        print image_path
+	classifications_dict = get_classifications_wrapper(image_path)
+	print classifications_dict
+        for key in classifications_dict.keys():
+            try:
+                if classifications_dict[key] == 1:
+                    frequencies[key] += 1
+            except:
+                if classifications_dict[key] == 1:
+                    frequencies[key] = 1
+                else:
+                    frequencies[key] = 0
+    return json.dumps(frequencies)
+>>>>>>> 72bf297f569e41a28f492f06584622316574c1a5
 
 class Classifications(Resource):
 
@@ -69,11 +100,113 @@ class Classifications(Resource):
 
         return classifications
 
+<<<<<<< HEAD
 
 # add our endpoints here (just one for now)
 base_endpoint = "/api/v1"
 endpoint = '/'.join((base_endpoint, "classifications"))
 api.add_resource(Classifications, endpoint)
+=======
+    # write binary data to temp file
+    data = request.get_data()
+    if data == None:
+        print "No data"
+        abort(400)
+
+    transfer_encoding = request.headers["Content-Type"]
+    if transfer_encoding == "base64":
+        data = cStringIO.StringIO(base64.b64decode(data))
+
+    content_type = request.headers["Content-Type"]
+    if content_type == None:
+        abort(400)
+    if content_type != "image/jpeg":
+	    abort(400)
+
+
+    temp = tempfile.NamedTemporaryFile()
+    temp.write(data)
+    temp.seek(0)
+
+    # get the classifications from net
+    classifications_dict = get_classifications_wrapper(temp.name)
+
+    # close temp file
+    temp.close()
+
+    result = json.dumps(classifications_dict)
+    return result
+
+
+@app.route('/classifications', methods=['GET'])
+def classifications():
+    """
+    returns all classifications that the endpoint serves
+    """
+
+    categories = []
+    # TODO: pull out classifications iteration into utils
+    for path in list(os.walk("./classifiers"))[1:]:
+        model_path = path[0]
+        category = model_path.split('/')[2]
+        categories.append(category)
+
+    result = json.dumps({ "categories" : categories})
+    return result
+
+
+@app.route('/classified', methods=['GET'])
+def classified():
+    """
+    grabs the spefified images with the specified classifications
+    """
+    # TODO: UNIT TEST THIS SHIT
+
+    # if no classifications specified return nothing
+    args = request.args
+    if len(args) == 0:
+        return json.dumps({})
+
+    # go through the ars and check for num_images and classifications
+    num_images = 1
+    num_classifications = 0
+    query = "select image_path from images where "
+    for arg in args:
+        if arg == "num_images":
+            num_images = int(args.get(arg))
+        else:
+            query += (arg + '=' + args.get(arg))
+            num_classifications += 1
+
+    if num_classifications == 0:
+        return json.dumps({})
+
+    db = get_db()
+    c = db.cursor()
+    try:
+        image_paths = c.execute(query)
+    except:
+        print "Improper select query"
+        print query
+    temp_images_zip = "/tmp/images.zip"
+    with zipfile.ZipFile(temp_images_zip, 'w') as zipf:
+        for ip in image_paths:
+            if num_classifications == 0:
+                break
+            if num_images == 0:
+                break
+            zipf.write(ip[0])
+            num_images -= 1
+
+    return send_file(temp_images_zip, mimetype="application/zip")
+
+
+# TODO: implement endpoint which returns
+# similar images to one posted
+# @app.route('/image', methods=['POST'])
+# def images():
+#     pass
+>>>>>>> 72bf297f569e41a28f492f06584622316574c1a5
 
 
 if __name__ == "__main__":
