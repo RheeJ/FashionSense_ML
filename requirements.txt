@@ -8,6 +8,5 @@ Pillow
 sklearn
 flask
 flask-restful
-sqlite3
 awscli
 
