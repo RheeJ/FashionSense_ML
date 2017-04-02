@@ -80,6 +80,10 @@ class Images(Resource):
 
         return images
 
+    def post(self):
+
+        return "not implemented"
+
 
 class Preferences(Resource):
 
