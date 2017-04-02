@@ -70,7 +70,7 @@ class Classifications(Resource):
 
 
 # add our endpoints here (just one for now)
-base_endpoint = "/api/v1"
+base_endpoint = "/v1"
 endpoint = '/'.join((base_endpoint, "classifications"))
 api.add_resource(Classifications, endpoint)
 
