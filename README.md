@@ -25,6 +25,14 @@ $ pip install -r requirements.txt
     ```
     $ docker run -p 5000:5000 ml
     ```
+    * get the container id
+    ```
+    $ docker ps
+    ```
+    * to enter the container
+    ```
+    * docker exec -it <container_id> /bin/bash
+    ```
 * to run for debugging
     * set the DEBUG env variable
     ```

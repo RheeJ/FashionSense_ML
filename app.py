@@ -69,10 +69,40 @@ class Classifications(Resource):
         return classifications
 
 
+class Images(Resource):
+
+    def get(self):
+
+        conn = get_db()
+        c = conn.cursor()
+
+        images = { "images": list(c.execute("select * from images")) }
+
+        return images
+
+
+class Preferences(Resource):
+
+    def get(self):
+
+        return "not implemented"
+
+    def post(self):
+
+        return "not implemented"
+
+
+
+
+
 # add our endpoints here (just one for now)
 base_endpoint = "/v1"
-endpoint = '/'.join((base_endpoint, "classifications"))
-api.add_resource(Classifications, endpoint)
+
+classifications_endpoint = '/'.join((base_endpoint, "classifications"))
+images_endpoint = '/'.join((base_endpoint, "images"))
+
+api.add_resource(Classifications, classifications_endpoint )
+api.add_resource(Images, images_endpoint)
 
 
 if __name__ == "__main__":
