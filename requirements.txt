@@ -1,6 +1,6 @@
 boto3
 gunicorn
-tensorflow
+tensorflow==1.1.0
 numpy
 matplotlib
 scipy
