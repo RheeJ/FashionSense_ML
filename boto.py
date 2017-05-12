@@ -9,21 +9,22 @@ s3 = boto3.resource('s3')
 client = boto3.client('s3')
 
 def usage_message():
-    print "This script communicates with aws buckets!"
-    print "Please ensure the first argument is either -up for uploads or -down for downloads"
+    print "This script communicates with aws S3 buckets"
+    print "First argument must be either: -up, -down, or -down_in"
     exit()
 
 def up_usage_message():
-    print "This script allows you to upload files to the aws buckets!"
-    print "Usage: python boto.py -up [-f=<file to upload>][-b=<bucket name>] optional: [-s=bucket folder]"
+    print "Usage: python boto.py -up <object to upload> <bucket name> optional: <bucket folder>"
     exit()
 
 def down_usage_message():
-    print "This script allows you to download files from the aws buckets!"
-    print "Usage: python boto.py -down [-f=<file/folder to download>][-b=<bucket name>][-l=<local destination>]"
-    prompt = raw_input('Would you like an example, type y or n: ')
-    if prompt == "y":
-        print "Example: 'python boto.py -down imagedataset/beach/0.jpg imagedataset images/0.jpg' will save the first image in the beach folder from the imagedataset bucket to a file called 0.jpg in the directory images within your current working directory"
+    print "Usage: python boto.py -down <object to download> <bucket name> <download destination>"
+    print "Example: 'python boto.py -down imagedataset/beach/0.jpg imagedataset images/0.jpg' will save the first image in the beach folder from the imagedataset bucket to a file called 0.jpg in the directory images within your current working directory"
+    exit()
+
+def down_in_usage_message():
+    print "Usage: python boto.py -down_in <object to download> <bucket name> <download destination>"
+    print "Example: 'python boto.py -down_in imagedataset/beach imagedataset images/subdir"
     exit()
 
 # Uploading function
@@ -38,6 +39,7 @@ def upload(pathname, bucket, sub_bucket):
     else:
         print "Sorry, I couldn't find that file or directory"
         os._exit(1)
+
     # Confirm bucket exists
     bucket = s3.Bucket(bucket)
     print "Now accessing bucket "+bucket.name
@@ -88,6 +90,7 @@ def download(bucket, filename, dest):
         else:
             print "Program terminating"
             os._exit(1)
+
     # Confirm bucket exists
     bucket = s3.Bucket(bucket)
     print "Now accessing bucket "+bucket.name
@@ -114,6 +117,7 @@ def download(bucket, filename, dest):
 
 # pipeline downloading function
 def download_in(bucket, foldername):
+
     # Confirm dest directory exists
     dest = "images/"+foldername
     if not(os.path.isdir(dest)):
@@ -157,6 +161,7 @@ if __name__ == "__main__":
             pathname = args[1]
             bucket = args[2]
             dest = args[3]
+
     elif method == "-up":
         if len(args) < 3:
             down_usage_message()
@@ -168,6 +173,7 @@ if __name__ == "__main__":
             pathname = args[1]
             bucket = args[2]
             sub_bucket = False
+
     elif method == "-down_in":
         if len(args) == 3:
             bucket = args[1]
@@ -179,12 +185,15 @@ if __name__ == "__main__":
     if method == "-down":
         print "Downloading beginning"
         download(bucket, pathname, dest)
+
     elif method == "-up":
         print "Uploading beginning"
         upload(pathname, bucket, sub_bucket)
+
     elif method == "-down_in":
         print "Downloading beginning"
         download_in(bucket, folder)
+
     else:
         print "No correct method found, exiting program"
         exit()
