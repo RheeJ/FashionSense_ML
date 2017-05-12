@@ -70,4 +70,49 @@ def download(bucket, sub_bucket = null, folder = null, filename = null, dest = n
                 s3.Objet(bucket.name,target).get()
             except:
                 print "Couldn't download" + target
-    
+
+
+if __name__ == "__main__":
+
+# Get inputs
+    args = sys.argv[1:]
+    method = args[0]
+    if method == "-down":
+        if len(args) != 4:
+            down_usage_message()
+        else:
+            pathname = args[1]
+            bucket = args[2]
+            dest = args[3]
+
+    elif method == "-up":
+        if len(args) < 3:
+            down_usage_message()
+        elif len(args) == 4:
+            pathname = args[1]
+            bucket = args[2]
+            sub_bucket = args[3]
+        else:
+            pathname = args[1]
+            bucket = args[2]
+            sub_bucket = False
+
+    elif method == "-down_in":
+        if len(args) == 3:
+            bucket = args[1]
+            folder = args[2]
+    else:
+        usage_message()
+
+# Choosing which to run
+    if method == "-down":
+        print "Downloading beginning"
+        download(bucket, pathname, dest)
+    # 
+    # elif method == "-up":
+    #     print "Uploading beginning"
+    #     upload(pathname, bucket, sub_bucket)
+
+    else:
+        print "No correct method found, exiting program"
+        exit()

@@ -30,6 +30,31 @@ ssh -i fashion__sense.pem ec2-user@$DNS << EOF
 	sudo yum -y install gcc
 	
 	pip install -r requirements.txt
+	
+	#mount S3	
+	sudo yum -y install automake fuse fuse-devel gcc-c++ git libcurl-devel libxml2-devel make openssl-devel
+	git clone https://github.com/s3fs-fuse/s3fs-fuse.git
+	mkdir s3_mount
+	mkdir s3_mount/image_database
+	cd s3fs-fuse
+	./autogen.sh
+	./configure
+	make
+	sudo make install
+	echo AKIAJW5GZ5OO5JKS64PQ:1rNMaxjPN5U/WKp6TWYYY160iYJQKBniSUefLlG2 > s3_passwd
+	chmod 600 s3_image_creds
+	
+	#change to root to set permissions
+	sudo su root 
+	echo "user_allow_other" >> /etc/fuse.conf
+	echo "addgroup ec2-user fuse" >> /etc/fuse.conf
+	/usr/local/bin/s3fs ../s3_mount/imagedataset ../s3_mount -o passwd_file=s3_passwd,allow_other,umask=002
+	
+	#set up docker
+	cd
+	sudo yum install -y docker
+	sudo service docker start
+	sudo usermod -a -G docker ec2-user
 
 	echo "All Done!"
 EOF
