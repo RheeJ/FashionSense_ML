@@ -36,7 +36,7 @@ ssh -i fashion__sense.pem ec2-user@$DNS << EOF
 	cd /home/ec2-user
 	git clone https://github.com/s3fs-fuse/s3fs-fuse.git
 	mkdir s3_mount
-	mkdir s3_mount/image_database
+	mkdir s3_mount/imagedatabase
 	cd s3fs-fuse
 	./autogen.sh
 	./configure
