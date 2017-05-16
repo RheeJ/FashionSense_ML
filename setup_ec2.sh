@@ -33,6 +33,7 @@ ssh -i fashion__sense.pem ec2-user@$DNS << EOF
 	
 	#mount S3	
 	sudo yum -y install automake fuse fuse-devel gcc-c++ git libcurl-devel libxml2-devel make openssl-devel
+	cd /home/ec2-user
 	git clone https://github.com/s3fs-fuse/s3fs-fuse.git
 	mkdir s3_mount
 	mkdir s3_mount/image_database
