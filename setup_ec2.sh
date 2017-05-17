@@ -36,20 +36,19 @@ ssh -i fashion__sense.pem ec2-user@$DNS << EOF
 	cd /home/ec2-user
 	git clone https://github.com/s3fs-fuse/s3fs-fuse.git
 	mkdir s3_mount
-	mkdir s3_mount/imagedatabase
 	cd s3fs-fuse
 	./autogen.sh
 	./configure
 	make
 	sudo make install
 	echo AKIAJW5GZ5OO5JKS64PQ:1rNMaxjPN5U/WKp6TWYYY160iYJQKBniSUefLlG2 > s3_passwd
-	chmod 600 s3_image_creds
+	chmod 600 s3_passwd
 	
 	#change to root to set permissions
 	sudo su root 
 	echo "user_allow_other" >> /etc/fuse.conf
 	echo "addgroup ec2-user fuse" >> /etc/fuse.conf
-	/usr/local/bin/s3fs ../s3_mount/imagedataset ../s3_mount -o passwd_file=s3_passwd,allow_other,umask=002
+	/usr/local/bin/s3fs imagedataset ../s3_mount -o passwd_file=s3_passwd,allow_other,umask=002
 	
 	#set up docker
 	cd
