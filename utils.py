@@ -29,7 +29,7 @@ def create_temporary_image(image):
 
     return temp
 
-def get_classifiers(directory="./classifiers"):
+def get_classifiers(directory="/data/classifiers"): #used to be ./classifiers
     """
     input: the directory the classifiers are being stored
     output: a list of all the classifiers
