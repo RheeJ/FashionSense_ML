@@ -63,7 +63,7 @@ ssh -i fashion__sense.pem ec2-user@$DNS << EOF
 		aws configure set region $AZ
 		sudo mkdir /data
 		sudo mount /dev/xvdf /data
-		sudo chown ec2-user /data
+		#sudo chown ec2-user /data
 	else
 		#mount S3	
 		sudo yum -y install automake fuse fuse-devel gcc-c++ git libcurl-devel libxml2-devel make openssl-devel

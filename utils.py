@@ -40,7 +40,7 @@ def get_classifiers(directory="/data/classifiers"): #used to be ./classifiers
     classifiers = {}
     for path in list(os.walk(directory))[1:]:
         model_path = path[0]
-        category = model_path.split('/')[2]
+        category = model_path.split('/')[-1]
         net = bcCNN.Net(directory, category)
         classifiers[category] = net
 
